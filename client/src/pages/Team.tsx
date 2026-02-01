@@ -20,6 +20,7 @@ import {
   useSensors,
   DragEndEvent,
 } from "@dnd-kit/core";
+import { AddMemberDialog } from "@/components/AddMemberDialog";
 import {
   arrayMove,
   SortableContext,
@@ -165,18 +166,10 @@ export default function Team() {
                   <div className="flex items-center justify-between mb-8">
                     <h2 className="text-3xl font-bold text-foreground">{roleLabels[role]}</h2>
                     {isEditMode && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="gap-2"
-                        onClick={() => {
-                          // TODO: Implement add member dialog
-                          toast.info("添加成员功能即将推出");
-                        }}
-                      >
-                        <Plus className="h-4 w-4" />
-                        添加成员
-                      </Button>
+                      <AddMemberDialog
+                        role={role}
+                        onMemberAdded={() => refetch()}
+                      />
                     )}
                   </div>
 
