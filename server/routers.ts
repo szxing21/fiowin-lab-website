@@ -17,12 +17,37 @@ export const appRouter = router({
     }),
   }),
 
-  // TODO: add feature routers here, e.g.
-  // todo: router({
-  //   list: protectedProcedure.query(({ ctx }) =>
-  //     db.getUserTodos(ctx.user.id)
-  //   ),
-  // }),
+  // Laboratory data routers
+  lab: router({
+    members: publicProcedure.query(async () => {
+      const { getAllMembers } = await import("./db");
+      return getAllMembers();
+    }),
+    publications: publicProcedure.query(async () => {
+      const { getAllPublications } = await import("./db");
+      return getAllPublications();
+    }),
+    featuredPublications: publicProcedure.query(async () => {
+      const { getFeaturedPublications } = await import("./db");
+      return getFeaturedPublications();
+    }),
+    news: publicProcedure.query(async () => {
+      const { getAllNews } = await import("./db");
+      return getAllNews();
+    }),
+    featuredNews: publicProcedure.query(async () => {
+      const { getFeaturedNews } = await import("./db");
+      return getFeaturedNews();
+    }),
+    conferences: publicProcedure.query(async () => {
+      const { getAllConferences } = await import("./db");
+      return getAllConferences();
+    }),
+    researchAreas: publicProcedure.query(async () => {
+      const { getAllResearchAreas } = await import("./db");
+      return getAllResearchAreas();
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

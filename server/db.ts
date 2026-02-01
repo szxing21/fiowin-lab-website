@@ -89,4 +89,54 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// Laboratory data queries
+import { members, publications, news, conferences, researchAreas } from "../drizzle/schema";
+import { desc } from "drizzle-orm";
+
+export async function getAllMembers() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(members).orderBy(members.displayOrder, members.id);
+}
+
+export async function getMembersByRole(role: "PI" | "Postdoc" | "PhD" | "Master" | "Member") {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(members).where(eq(members.role, role)).orderBy(members.displayOrder, members.id);
+}
+
+export async function getAllPublications() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(publications).orderBy(desc(publications.year), desc(publications.month));
+}
+
+export async function getFeaturedPublications() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(publications).where(eq(publications.featured, 1)).orderBy(desc(publications.year), desc(publications.month));
+}
+
+export async function getAllNews() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(news).orderBy(desc(news.publishedAt));
+}
+
+export async function getFeaturedNews() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(news).where(eq(news.featured, 1)).orderBy(desc(news.publishedAt)).limit(6);
+}
+
+export async function getAllConferences() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(conferences).orderBy(desc(conferences.year), desc(conferences.startDate));
+}
+
+export async function getAllResearchAreas() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(researchAreas).orderBy(researchAreas.displayOrder, researchAreas.id);
+}

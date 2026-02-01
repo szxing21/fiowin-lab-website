@@ -4,17 +4,36 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { Navbar } from "./components/Navbar";
+import { Footer } from "./components/Footer";
 import Home from "./pages/Home";
+import Team from "./pages/Team";
+import Publications from "./pages/Publications";
+import Research from "./pages/Research";
+import News from "./pages/News";
+import Conferences from "./pages/Conferences";
+import Contact from "./pages/Contact";
 
 function Router() {
-  // make sure to consider if you need authentication for certain routes
   return (
-    <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
-      <Route component={NotFound} />
-    </Switch>
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      <main className="flex-1">
+        <Switch>
+          <Route path={"/"} component={Home} />
+          <Route path={"/team"} component={Team} />
+          <Route path={"/publications"} component={Publications} />
+          <Route path={"/research"} component={Research} />
+          <Route path={"/news"} component={News} />
+          <Route path={"/conferences"} component={Conferences} />
+          <Route path={"/contact"} component={Contact} />
+          <Route path={"/404"} component={NotFound} />
+          {/* Final fallback route */}
+          <Route component={NotFound} />
+        </Switch>
+      </main>
+      <Footer />
+    </div>
   );
 }
 
