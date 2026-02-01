@@ -1,15 +1,17 @@
-import { GeometricDecoration } from "@/components/GeometricDecoration";
 import { trpc } from "@/lib/trpc";
 import { ExternalLink } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { EditableText } from "@/components/EditableText";
+import { EditablePublication } from "@/components/EditablePublication";
 import { useEditMode } from "@/contexts/EditModeContext";
+import { GeometricDecoration } from "@/components/GeometricDecoration";
 
 const JOURNAL_TIER_ORDER = { top: 0, high: 1, medium: 2, other: 3 };
 
 export default function Publications() {
   const { isEditMode } = useEditMode();
-  const { data: publications, isLoading } = trpc.lab.publications.useQuery();
+  const { data: publications, isLoading, refetch } = trpc.lab.publications.useQuery();
+  const [key, setKey] = useState(0);
 
   // Sort publications by journal tier and year (descending)
   const sortedPublications = useMemo(() => {
@@ -127,32 +129,25 @@ export default function Publications() {
                     {pubs && Array.isArray(pubs) && pubs.map((pub, idx) => {
                       const currentIndex = citationIndex + idx;
                       return (
-                        <div
-                          key={pub.id}
-                          className="group p-4 rounded-lg bg-card hover:bg-accent/5 transition-colors duration-200"
-                        >
-                          <div className="flex gap-4">
-                            <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-accent text-accent-foreground font-semibold text-sm">
-                              {currentIndex}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm text-foreground/80 leading-relaxed font-mono break-words">
-                                {getCitationFormat(pub, currentIndex)}
-                              </p>
-                              {pub.url && (
-                                <a
-                                  href={pub.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1 mt-2 text-xs text-accent hover:text-accent/80 transition-colors"
-                                >
-                                  <ExternalLink className="w-3 h-3" />
-                                  查看论文
-                                </a>
-                              )}
-                            </div>
-                          </div>
-                        </div>
+                        <EditablePublication
+                          key={`${pub.id}-${key}`}
+                          id={pub.id}
+                          title={pub.title || ""}
+                          authors={pub.authors || ""}
+                          journal={pub.journal || ""}
+                          year={pub.year || 0}
+                          url={pub.url}
+                          type={pub.type as "journal" | "conference"}
+                          journalTier={pub.journalTier}
+                          onUpdate={() => {
+                            refetch();
+                            setKey(k => k + 1);
+                          }}
+                          onDelete={() => {
+                            refetch();
+                            setKey(k => k + 1);
+                          }}
+                        />
                       );
                     })}
                   </div>

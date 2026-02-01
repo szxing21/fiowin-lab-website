@@ -1,0 +1,8 @@
+{
+  "query": "INSERT INTO members (chineseName, englishName, role, year, displayOrder) VALUES \n('岳之峰', 'Yue Zhifeng', 'Undergraduate', '一年级', 100),\n('李忠亚', 'Li Zhongya', 'Alumni', '', 101);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user czqs44QUsyTYvhK.root --database CiwxvFQvMALUxAkuS7uyUE --execute INSERT INTO members (chineseName, englishName, role, year, displayOrder) VALUES \n('岳之峰', 'Yue Zhifeng', 'Undergraduate', '一年级', 100),\n('李忠亚', 'Li Zhongya', 'Alumni', '', 101);",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'chineseName' in 'field list'"
+  ]
+}

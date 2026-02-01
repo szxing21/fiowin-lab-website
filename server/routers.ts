@@ -18,7 +18,11 @@ import {
   createMember,
   updateMember,
   deleteMember,
-  updateMembersOrder
+  updateMembersOrder,
+  updatePublication,
+  deletePublication,
+  updateNews,
+  deleteNews
 } from "./db";
 
 export const appRouter = router({
@@ -141,6 +145,36 @@ export const appRouter = router({
     }),
     updateMembersOrder: publicProcedure.input(z.object({ memberIds: z.array(z.number()) })).mutation(async ({ input }) => {
       return updateMembersOrder(input.memberIds);
+    }),
+    updatePublication: publicProcedure.input(z.object({
+      id: z.number(),
+      title: z.string().optional(),
+      authors: z.string().optional(),
+      journal: z.string().optional(),
+      year: z.number().optional(),
+      url: z.string().optional(),
+      type: z.enum(["journal", "conference"]).optional(),
+      journalTier: z.string().optional(),
+    })).mutation(async ({ input }) => {
+      const { id, ...data } = input;
+      return updatePublication(id, data);
+    }),
+    deletePublication: publicProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+      return deletePublication(input.id);
+    }),
+    updateNews: publicProcedure.input(z.object({
+      id: z.number(),
+      title: z.string().optional(),
+      category: z.string().optional(),
+      author: z.string().optional(),
+      summary: z.string().optional(),
+      content: z.string().optional(),
+    })).mutation(async ({ input }) => {
+      const { id, ...data } = input;
+      return updateNews(id, data);
+    }),
+    deleteNews: publicProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+      return deleteNews(input.id);
     }),
   }),
 });

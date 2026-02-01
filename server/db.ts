@@ -271,3 +271,60 @@ export async function upsertPage(slug: string, data: Partial<InsertPage>) {
     throw error;
   }
 }
+
+export async function updatePublication(id: number, data: any) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    return await db.update(publications).set(data).where(eq(publications.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to update publication:", error);
+    throw error;
+  }
+}
+
+export async function deletePublication(id: number) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    return await db.delete(publications).where(eq(publications.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to delete publication:", error);
+    throw error;
+  }
+}
+
+
+export async function updateNews(id: number, data: Record<string, any>) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    return await db.update(news).set(data).where(eq(news.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to update news:", error);
+    throw error;
+  }
+}
+
+export async function deleteNews(id: number) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    return await db.delete(news).where(eq(news.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to delete news:", error);
+    throw error;
+  }
+}

@@ -17,6 +17,7 @@ import Contact from "./pages/Contact";
 import Analytics from "./pages/Analytics";
 import MemberProfile from "./pages/MemberProfile";
 import MemberDetail from "./pages/MemberDetail";
+import NewsDetail from "./pages/NewsDetail";
 import AdminLogin from "./pages/AdminLogin";
 import AdminEditor from "./pages/AdminEditor";
 
@@ -31,6 +32,7 @@ function Router() {
           <Route path={"/publications"} component={Publications} />
           <Route path={"/research"} component={Research} />
           <Route path={"/news"} component={News} />
+          <Route path={"/news/:id"} component={NewsDetail} />
           <Route path={"/conferences"} component={Conferences} />
           <Route path={"/contact"} component={Contact} />
           <Route path={"/analytics"} component={Analytics} />

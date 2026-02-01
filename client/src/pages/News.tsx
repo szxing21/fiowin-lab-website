@@ -2,13 +2,34 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { GeometricDecoration } from "@/components/GeometricDecoration";
 import { trpc } from "@/lib/trpc";
-import { Calendar } from "lucide-react";
+import { Calendar, Edit2, Trash2 } from "lucide-react";
 import { EditableText } from "@/components/EditableText";
 import { useEditMode } from "@/contexts/EditModeContext";
+import { useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export default function News() {
   const { isEditMode } = useEditMode();
-  const { data: news, isLoading } = trpc.lab.news.useQuery();
+  const [, navigate] = useLocation();
+  const { data: news, isLoading, refetch } = trpc.lab.news.useQuery();
+  
+  const deleteNewsMutation = trpc.lab.deleteNews.useMutation({
+    onSuccess: () => {
+      toast.success("删除成功");
+      refetch();
+    },
+    onError: () => {
+      toast.error("删除失败");
+    },
+  });
+  
+  const handleDelete = async (id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm("确定要删除这条新闻吗？")) {
+      await deleteNewsMutation.mutateAsync({ id });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -64,9 +85,10 @@ export default function News() {
             {news?.map((item) => (
               <Card
                 key={item.id}
-                className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-border/40"
+                className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-border/40 cursor-pointer"
+                onClick={() => navigate(`/news/${item.id}`)}
               >
-                <CardContent className="p-8 space-y-4">
+                <CardContent className="p-8 space-y-4 relative">
                   <div className="flex items-center gap-3 flex-wrap">
                     {item.category && (
                       <Badge variant="default" className="bg-accent text-accent-foreground">
@@ -91,6 +113,30 @@ export default function News() {
                     <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
                       {item.content}
                     </p>
+                  )}
+                  {isEditMode && (
+                    <div className="flex gap-2 mt-4 pt-4 border-t border-border/40">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/news/${item.id}`);
+                        }}
+                      >
+                        <Edit2 className="h-4 w-4 mr-1" />
+                        编辑
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={(e) => handleDelete(item.id, e)}
+                        disabled={deleteNewsMutation.isPending}
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        删除
+                      </Button>
+                    </div>
                   )}
                 </CardContent>
               </Card>
