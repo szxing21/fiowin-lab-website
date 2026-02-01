@@ -52,8 +52,8 @@ export const members = mysqlTable("members", {
   github: varchar("github", { length: 512 }),
   orcid: varchar("orcid", { length: 128 }),
   // Custom tags for members
-  identity: varchar("identity", { length: 128 }), // Custom identity tag (e.g., "研究员", "访问学者")
-  grade: varchar("grade", { length: 128 }), // Custom grade tag (e.g., "一年级", "二年级")
+  birthday: varchar("birthday", { length: 32 }), // Birthday in YYYY-MM-DD format
+  contact: varchar("contact", { length: 128 }), // Contact information (phone, WeChat, etc.)
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

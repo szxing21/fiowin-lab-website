@@ -99,6 +99,11 @@ export default function MemberDetail() {
   const interests = member.researchInterests ? JSON.parse(member.researchInterests) : [];
   const awards = member.awards ? JSON.parse(member.awards) : [];
 
+  // 判断是否为学生（博士生、硕士生、本科生）
+  const isStudent = ["PhD", "Master", "Undergraduate"].includes(member.role);
+  // 判断是否为老师（PI、博士后）
+  const isTeacher = ["PI", "Postdoc"].includes(member.role);
+
   return (
     <div className="min-h-screen py-16">
       <div className="container max-w-4xl">
@@ -148,15 +153,15 @@ export default function MemberDetail() {
 
                   {/* Custom Tags */}
                   <div className="pt-4 space-y-3 border-t border-border">
-                    {/* Identity Tag */}
+                    {/* Birthday Tag - for all members */}
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <label className="text-xs font-semibold text-foreground">
-                          身份标签
+                          生日
                         </label>
-                        {isEditMode && editingField !== "identity" && (
+                        {isEditMode && editingField !== "birthday" && (
                           <button
-                            onClick={() => startEdit("identity", member.identity || "")}
+                            onClick={() => startEdit("birthday", member.birthday || "")}
                             className="text-xs text-accent hover:text-accent/80"
                           >
                             <Edit2 className="h-3 w-3" />
@@ -164,22 +169,21 @@ export default function MemberDetail() {
                         )}
                       </div>
 
-                      {editingField === "identity" ? (
+                      {editingField === "birthday" ? (
                         <div className="space-y-2">
                           <input
-                            type="text"
-                            value={editValues["identity"]}
+                            type="date"
+                            value={editValues["birthday"]}
                             onChange={(e) =>
-                              setEditValues({ ...editValues, identity: e.target.value })
+                              setEditValues({ ...editValues, birthday: e.target.value })
                             }
-                            placeholder="例如：研究员、访问学者"
                             className="w-full px-2 py-1 text-sm border border-border rounded bg-background"
                             autoFocus
                           />
                           <div className="flex gap-2">
                             <Button
                               size="sm"
-                              onClick={() => saveEdit("identity")}
+                              onClick={() => saveEdit("birthday")}
                               disabled={updateMemberMutation.isPending}
                               className="flex-1 gap-1"
                             >
@@ -199,66 +203,68 @@ export default function MemberDetail() {
                         </div>
                       ) : (
                         <p className="text-sm text-muted-foreground">
-                          {member.identity || "未设置"}
+                          {member.birthday || "未设置"}
                         </p>
                       )}
                     </div>
 
-                    {/* Grade Tag */}
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="text-xs font-semibold text-foreground">
-                          年级标签
-                        </label>
-                        {isEditMode && editingField !== "grade" && (
-                          <button
-                            onClick={() => startEdit("grade", member.grade || "")}
-                            className="text-xs text-accent hover:text-accent/80"
-                          >
-                            <Edit2 className="h-3 w-3" />
-                          </button>
+                    {/* Contact Tag - for students only */}
+                    {isStudent && (
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-xs font-semibold text-foreground">
+                            联系方式
+                          </label>
+                          {isEditMode && editingField !== "contact" && (
+                            <button
+                              onClick={() => startEdit("contact", member.contact || "")}
+                              className="text-xs text-accent hover:text-accent/80"
+                            >
+                              <Edit2 className="h-3 w-3" />
+                            </button>
+                          )}
+                        </div>
+
+                        {editingField === "contact" ? (
+                          <div className="space-y-2">
+                            <input
+                              type="text"
+                              value={editValues["contact"]}
+                              onChange={(e) =>
+                                setEditValues({ ...editValues, contact: e.target.value })
+                              }
+                              placeholder="例如：电话、微信、QQ"
+                              className="w-full px-2 py-1 text-sm border border-border rounded bg-background"
+                              autoFocus
+                            />
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => saveEdit("contact")}
+                                disabled={updateMemberMutation.isPending}
+                                className="flex-1 gap-1"
+                              >
+                                <Check className="h-3 w-3" />
+                                保存
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={cancelEdit}
+                                className="flex-1 gap-1"
+                              >
+                                <X className="h-3 w-3" />
+                                取消
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">
+                            {member.contact || "未设置"}
+                          </p>
                         )}
                       </div>
-
-                      {editingField === "grade" ? (
-                        <div className="space-y-2">
-                          <input
-                            type="text"
-                            value={editValues["grade"]}
-                            onChange={(e) =>
-                              setEditValues({ ...editValues, grade: e.target.value })
-                            }
-                            placeholder="例如：一年级、二年级"
-                            className="w-full px-2 py-1 text-sm border border-border rounded bg-background"
-                            autoFocus
-                          />
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              onClick={() => saveEdit("grade")}
-                              disabled={updateMemberMutation.isPending}
-                              className="flex-1 gap-1"
-                            >
-                              <Check className="h-3 w-3" />
-                              保存
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={cancelEdit}
-                              className="flex-1 gap-1"
-                            >
-                              <X className="h-3 w-3" />
-                              取消
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">
-                          {member.grade || "未设置"}
-                        </p>
-                      )}
-                    </div>
+                    )}
                   </div>
 
                   {/* Contact Info */}
