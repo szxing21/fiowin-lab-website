@@ -30,14 +30,18 @@ export default function AdminEditor() {
   const [pageTitle, setPageTitle] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false);
 
-  // 检查认证状态
-  const { data: authData } = trpc.auth.me.useQuery();
+  // 检查认证状态 - 添加retry选项确保获取最新状态
+  const { data: authData, isLoading: isAuthLoading, refetch: refetchAuth } = trpc.auth.me.useQuery(undefined, {
+    retry: 3,
+    retryDelay: 500,
+  });
   
   // 获取页面内容
   const { data: pageData, isLoading: isLoadingPage } = trpc.admin.getPage.useQuery(
     { slug: currentPage },
-    { enabled: !!authData }
+    { enabled: !!authData && authChecked }
   );
 
   // 保存页面
@@ -51,6 +55,20 @@ export default function AdminEditor() {
       setIsSaving(false);
     },
   });
+
+  // 监听认证状态变化
+  useEffect(() => {
+    if (!isAuthLoading) {
+      setAuthChecked(true);
+      if (!authData?.id) {
+        // 如果没有认证，等待1秒后再次检查（可能是网络延迟）
+        const timer = setTimeout(() => {
+          refetchAuth();
+        }, 1000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isAuthLoading, authData, refetchAuth]);
 
   // 初始化编辑器
   useEffect(() => {
@@ -82,9 +100,9 @@ export default function AdminEditor() {
 
         // 加载页面内容
         if (pageData?.contentHtml) {
-      try {
-        // 尝试解析保存的JSON数据
-        const savedData = JSON.parse(pageData.contentHtml as string);
+          try {
+            // 尝试解析保存的JSON数据
+            const savedData = JSON.parse(pageData.contentHtml as string);
             await editor.render(savedData);
           } catch {
             // 如果不是JSON，作为HTML处理
@@ -157,14 +175,36 @@ export default function AdminEditor() {
     navigate("/");
   };
 
+  // 显示加载状态
+  if (isAuthLoading || !authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Card className="p-8 text-center">
+          <p className="text-lg text-gray-600">正在加载...</p>
+        </Card>
+      </div>
+    );
+  }
+
+  // 未授权
   if (!authData || !authData.id) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <Card className="p-8">
-          <p className="text-lg">未授权访问</p>
-          <Button onClick={() => navigate("/admin")} className="mt-4">
-            返回登录
-          </Button>
+          <p className="text-lg font-semibold mb-4">未授权访问</p>
+          <p className="text-sm text-gray-600 mb-6">您需要先登录才能访问编辑器</p>
+          <div className="flex gap-2">
+            <Button onClick={() => navigate("/admin")} className="flex-1">
+              返回登录
+            </Button>
+            <Button 
+              onClick={() => refetchAuth()} 
+              variant="outline"
+              className="flex-1"
+            >
+              重新检查
+            </Button>
+          </div>
         </Card>
       </div>
     );
