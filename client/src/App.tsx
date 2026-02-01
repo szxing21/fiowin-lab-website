@@ -16,6 +16,7 @@ import Conferences from "./pages/Conferences";
 import Contact from "./pages/Contact";
 import Analytics from "./pages/Analytics";
 import MemberProfile from "./pages/MemberProfile";
+import MemberDetail from "./pages/MemberDetail";
 import AdminLogin from "./pages/AdminLogin";
 import AdminEditor from "./pages/AdminEditor";
 
@@ -33,7 +34,7 @@ function Router() {
           <Route path={"/conferences"} component={Conferences} />
           <Route path={"/contact"} component={Contact} />
           <Route path={"/analytics"} component={Analytics} />
-          <Route path={"/member/:id"} component={MemberProfile} />
+          <Route path={"/member/:id"} component={MemberDetail} />
           <Route path={"/admin"} component={AdminLogin} />
           <Route path={"/admin/editor"} component={AdminEditor} />
           <Route path={"/404"} component={NotFound} />

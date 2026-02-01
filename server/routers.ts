@@ -14,7 +14,11 @@ import {
   getAllNews, 
   getFeaturedNews, 
   getAllConferences, 
-  getAllResearchAreas 
+  getAllResearchAreas,
+  createMember,
+  updateMember,
+  deleteMember,
+  updateMembersOrder
 } from "./db";
 
 export const appRouter = router({
@@ -96,6 +100,47 @@ export const appRouter = router({
     }),
     pageBySlug: publicProcedure.input(z.object({ slug: z.string() })).query(async ({ input }) => {
       return getPageBySlug(input.slug);
+    }),
+    createMember: publicProcedure.input(z.object({
+      nameEn: z.string(),
+      nameCn: z.string(),
+      role: z.enum(["PI", "Postdoc", "PhD", "Master", "Undergraduate", "Alumni", "Member"]),
+      title: z.string().optional(),
+      year: z.string().optional(),
+      bio: z.string().optional(),
+      identity: z.string().optional(),
+      grade: z.string().optional(),
+      displayOrder: z.number().optional(),
+    })).mutation(async ({ input }) => {
+      return createMember(input);
+    }),
+    updateMember: publicProcedure.input(z.object({
+      id: z.number(),
+      nameEn: z.string().optional(),
+      nameCn: z.string().optional(),
+      role: z.enum(["PI", "Postdoc", "PhD", "Master", "Undergraduate", "Alumni", "Member"]).optional(),
+      title: z.string().optional(),
+      year: z.string().optional(),
+      bio: z.string().optional(),
+      identity: z.string().optional(),
+      grade: z.string().optional(),
+      displayOrder: z.number().optional(),
+      researchInterests: z.string().optional(),
+      awards: z.string().optional(),
+      photoUrl: z.string().optional(),
+      email: z.string().optional(),
+      publications: z.number().optional(),
+      citations: z.number().optional(),
+      hIndex: z.number().optional(),
+    })).mutation(async ({ input }) => {
+      const { id, ...data } = input;
+      return updateMember(id, data);
+    }),
+    deleteMember: publicProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+      return deleteMember(input.id);
+    }),
+    updateMembersOrder: publicProcedure.input(z.object({ memberIds: z.array(z.number()) })).mutation(async ({ input }) => {
+      return updateMembersOrder(input.memberIds);
     }),
   }),
 });

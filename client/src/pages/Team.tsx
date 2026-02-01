@@ -1,22 +1,94 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { GeometricDecoration } from "@/components/GeometricDecoration";
+import { DraggableMemberCard } from "@/components/DraggableMemberCard";
 import { trpc } from "@/lib/trpc";
-import { Award, BookOpen, User } from "lucide-react";
+import { Award, BookOpen, User, Plus } from "lucide-react";
 import { Link } from "wouter";
 import { EditableText } from "@/components/EditableText";
 import { useEditMode } from "@/contexts/EditModeContext";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
 export default function Team() {
   const { isEditMode } = useEditMode();
-  const { data: members, isLoading } = trpc.lab.members.useQuery();
+  const { data: members, isLoading, refetch } = trpc.lab.members.useQuery();
+  const updateOrderMutation = trpc.lab.updateMembersOrder.useMutation();
+  const deleteMemberMutation = trpc.lab.deleteMember.useMutation();
+
+  const [sortedMembers, setSortedMembers] = useState<typeof members>([]);
+
+  useEffect(() => {
+    if (members) {
+      setSortedMembers([...members].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0)));
+    }
+  }, [members]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      distance: 8,
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = sortedMembers?.findIndex((m) => m.id === active.id) ?? 0;
+      const newIndex = sortedMembers?.findIndex((m) => m.id === over.id) ?? 0;
+
+      const newOrder = arrayMove(sortedMembers || [], oldIndex, newIndex);
+      setSortedMembers(newOrder);
+
+      const memberIds = newOrder.map((m) => m.id);
+      try {
+        await updateOrderMutation.mutateAsync({ memberIds });
+        toast.success("排序已保存");
+      } catch (error) {
+        toast.error("保存排序失败");
+        refetch();
+      }
+    }
+  };
+
+  const handleDeleteMember = async (id: number) => {
+    try {
+      await deleteMemberMutation.mutateAsync({ id });
+      toast.success("成员已删除");
+      refetch();
+    } catch (error) {
+      toast.error("删除失败");
+    }
+  };
 
   const groupedMembers = {
-    PI: members?.filter((m) => m.role === "PI") || [],
-    Postdoc: members?.filter((m) => m.role === "Postdoc") || [],
-    PhD: members?.filter((m) => m.role === "PhD") || [],
-    Master: members?.filter((m) => m.role === "Master") || [],
-    Member: members?.filter((m) => m.role === "Member") || [],
+    PI: sortedMembers?.filter((m) => m.role === "PI") || [],
+    Postdoc: sortedMembers?.filter((m) => m.role === "Postdoc") || [],
+    PhD: sortedMembers?.filter((m) => m.role === "PhD") || [],
+    Master: sortedMembers?.filter((m) => m.role === "Master") || [],
+    Undergraduate: sortedMembers?.filter((m) => m.role === "Undergraduate") || [],
+    Alumni: sortedMembers?.filter((m) => m.role === "Alumni") || [],
+    Member: sortedMembers?.filter((m) => m.role === "Member") || [],
   };
 
   const roleLabels = {
@@ -24,6 +96,8 @@ export default function Team() {
     Postdoc: "博士后",
     PhD: "博士生",
     Master: "硕士生",
+    Undergraduate: "本科生",
+    Alumni: "已毕业学生",
     Member: "团队成员",
   };
 
@@ -77,121 +151,54 @@ export default function Team() {
       {/* Members by Role */}
       <section className="py-16">
         <div className="container space-y-16">
-          {(Object.keys(groupedMembers) as Array<keyof typeof groupedMembers>).map((role) => {
-            const roleMembers = groupedMembers[role];
-            if (roleMembers.length === 0) return null;
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            {(Object.keys(groupedMembers) as Array<keyof typeof groupedMembers>).map((role) => {
+              const roleMembers = groupedMembers[role];
+              if (roleMembers.length === 0) return null;
 
-            return (
-              <div key={role}>
-                <h2 className="text-3xl font-bold text-foreground mb-8">{roleLabels[role]}</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {roleMembers.map((member) => {
-                    const interests = member.researchInterests ? JSON.parse(member.researchInterests) : [];
-                    const awards = member.awards ? JSON.parse(member.awards) : [];
+              return (
+                <div key={role}>
+                  <div className="flex items-center justify-between mb-8">
+                    <h2 className="text-3xl font-bold text-foreground">{roleLabels[role]}</h2>
+                    {isEditMode && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-2"
+                        onClick={() => {
+                          // TODO: Implement add member dialog
+                          toast.info("添加成员功能即将推出");
+                        }}
+                      >
+                        <Plus className="h-4 w-4" />
+                        添加成员
+                      </Button>
+                    )}
+                  </div>
 
-                    return (
-                      <Link key={member.id} href={`/member/${member.id}`}>
-                        <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-border/40 cursor-pointer">
-                        <CardContent className="p-6 space-y-4">
-                          {/* Avatar */}
-                          <div className="flex items-start gap-4">
-                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-accent/20 to-chart-2/20 flex items-center justify-center flex-shrink-0">
-                              {member.photoUrl ? (
-                                <img
-                                  src={member.photoUrl}
-                                  alt={member.nameCn}
-                                  className="w-full h-full rounded-full object-cover"
-                                />
-                              ) : (
-                                <User className="h-8 w-8 text-accent" />
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="text-xl font-bold text-foreground">{member.nameCn}</h3>
-                              <p className="text-sm text-muted-foreground">{member.nameEn}</p>
-                              {member.title && (
-                                <Badge variant="secondary" className="mt-1 text-xs">
-                                  {member.title}
-                                </Badge>
-                              )}
-                              {member.year && (
-                                <p className="text-xs text-muted-foreground mt-1">{member.year}</p>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Bio */}
-                          {member.bio && (
-                            <p className="text-sm text-muted-foreground leading-relaxed">{member.bio}</p>
-                          )}
-
-                          {/* Research Interests */}
-                          {interests.length > 0 && (
-                            <div>
-                              <p className="text-xs font-semibold text-foreground mb-2">研究方向</p>
-                              <div className="flex flex-wrap gap-1.5">
-                                {interests.map((interest: string, idx: number) => (
-                                  <span
-                                    key={idx}
-                                    className="text-xs px-2 py-1 bg-accent/10 text-foreground rounded-full"
-                                  >
-                                    {interest}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Stats */}
-                          {((member.publications ?? 0) > 0 || (member.citations ?? 0) > 0 || (member.hIndex ?? 0) > 0) && (
-                            <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2 border-t border-border/40">
-                              {(member.publications ?? 0) > 0 && (
-                                <div className="flex items-center gap-1">
-                                  <BookOpen className="h-3 w-3" />
-                                  <span>{member.publications} 篇论文</span>
-                                </div>
-                              )}
-                              {(member.citations ?? 0) > 0 && (
-                                <div className="flex items-center gap-1">
-                                  <span>{member.citations} 引用</span>
-                                </div>
-                              )}
-                              {(member.hIndex ?? 0) > 0 && (
-                                <div className="flex items-center gap-1">
-                                  <span>h-index {member.hIndex}</span>
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Awards */}
-                          {awards.length > 0 && (
-                            <div>
-                              <p className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1">
-                                <Award className="h-3 w-3" />
-                                荣誉奖项
-                              </p>
-                              <ul className="text-xs text-muted-foreground space-y-1">
-                                {awards.slice(0, 3).map((award: string, idx: number) => (
-                                  <li key={idx} className="line-clamp-1">
-                                    • {award}
-                                  </li>
-                                ))}
-                                {awards.length > 3 && (
-                                  <li className="text-accent">+ {awards.length - 3} 更多</li>
-                                )}
-                              </ul>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                      </Link>
-                    );
-                  })}
+                  <SortableContext
+                    items={roleMembers.map((m) => m.id)}
+                    strategy={verticalListSortingStrategy}
+                    disabled={!isEditMode}
+                  >
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {roleMembers.map((member) => (
+                        <DraggableMemberCard
+                          key={member.id}
+                          member={member}
+                          onDelete={handleDeleteMember}
+                        />
+                      ))}
+                    </div>
+                  </SortableContext>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </DndContext>
         </div>
       </section>
     </div>

@@ -1,5 +1,5 @@
-import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
+import { eq, desc } from "drizzle-orm";
 import { InsertUser, users, members, publications, news, conferences, researchAreas, pages, InsertPage, Page } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -96,10 +96,81 @@ export async function getAllMembers() {
   return db.select().from(members).orderBy(members.displayOrder, members.id);
 }
 
-export async function getMembersByRole(role: "PI" | "Postdoc" | "PhD" | "Master" | "Member") {
+export async function getMembersByRole(role: "PI" | "Postdoc" | "PhD" | "Master" | "Undergraduate" | "Alumni" | "Member") {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(members).where(eq(members.role, role)).orderBy(members.displayOrder, members.id);
+}
+
+export async function createMember(data: {
+  nameEn: string;
+  nameCn: string;
+  role: "PI" | "Postdoc" | "PhD" | "Master" | "Undergraduate" | "Alumni" | "Member";
+  title?: string;
+  year?: string;
+  bio?: string;
+  identity?: string;
+  grade?: string;
+  displayOrder?: number;
+}) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.insert(members).values({
+    nameEn: data.nameEn,
+    nameCn: data.nameCn,
+    role: data.role,
+    title: data.title,
+    year: data.year,
+    bio: data.bio,
+    identity: data.identity,
+    grade: data.grade,
+    displayOrder: data.displayOrder ?? 0,
+  });
+  
+  return result;
+}
+
+export async function updateMember(id: number, data: Partial<{
+  nameEn: string;
+  nameCn: string;
+  role: "PI" | "Postdoc" | "PhD" | "Master" | "Undergraduate" | "Alumni" | "Member";
+  title: string;
+  year: string;
+  bio: string;
+  identity: string;
+  grade: string;
+  displayOrder: number;
+  researchInterests: string;
+  awards: string;
+  photoUrl: string;
+  email: string;
+  publications: number;
+  citations: number;
+  hIndex: number;
+}>) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.update(members).set(data).where(eq(members.id, id));
+  return result;
+}
+
+export async function deleteMember(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.delete(members).where(eq(members.id, id));
+  return result;
+}
+
+export async function updateMembersOrder(memberIds: number[]) {
+  const db = await getDb();
+  if (!db) return;
+  
+  for (let i = 0; i < memberIds.length; i++) {
+    await db.update(members).set({ displayOrder: i }).where(eq(members.id, memberIds[i]));
+  }
 }
 
 export async function getAllPublications() {

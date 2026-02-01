@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE `members` MODIFY COLUMN `role` enum('PI','Postdoc','PhD','Master','Undergraduate','Alumni','Member') NOT NULL;\nALTER TABLE `members` ADD `identity` varchar(128);\nALTER TABLE `members` ADD `grade` varchar(128);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user czqs44QUsyTYvhK.root --database CiwxvFQvMALUxAkuS7uyUE --execute ALTER TABLE `members` MODIFY COLUMN `role` enum('PI','Postdoc','PhD','Master','Undergraduate','Alumni','Member') NOT NULL;\nALTER TABLE `members` ADD `identity` varchar(128);\nALTER TABLE `members` ADD `grade` varchar(128);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 4146
+}

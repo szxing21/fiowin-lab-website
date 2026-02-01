@@ -30,7 +30,7 @@ export const members = mysqlTable("members", {
   id: int("id").autoincrement().primaryKey(),
   nameEn: varchar("nameEn", { length: 128 }).notNull(),
   nameCn: varchar("nameCn", { length: 128 }).notNull(),
-  role: mysqlEnum("role", ["PI", "Postdoc", "PhD", "Master", "Member"]).notNull(),
+  role: mysqlEnum("role", ["PI", "Postdoc", "PhD", "Master", "Undergraduate", "Alumni", "Member"]).notNull(),
   title: varchar("title", { length: 64 }),
   year: varchar("year", { length: 32 }),
   researchInterests: text("researchInterests"),
@@ -51,6 +51,9 @@ export const members = mysqlTable("members", {
   googleScholar: varchar("googleScholar", { length: 512 }),
   github: varchar("github", { length: 512 }),
   orcid: varchar("orcid", { length: 128 }),
+  // Custom tags for members
+  identity: varchar("identity", { length: 128 }), // Custom identity tag (e.g., "研究员", "访问学者")
+  grade: varchar("grade", { length: 128 }), // Custom grade tag (e.g., "一年级", "二年级")
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
