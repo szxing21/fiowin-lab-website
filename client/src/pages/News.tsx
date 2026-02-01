@@ -2,17 +2,36 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { GeometricDecoration } from "@/components/GeometricDecoration";
 import { trpc } from "@/lib/trpc";
-import { Calendar, Edit2, Trash2 } from "lucide-react";
+import { Calendar, Edit2, Trash2, Plus } from "lucide-react";
 import { EditableText } from "@/components/EditableText";
 import { useEditMode } from "@/contexts/EditModeContext";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function News() {
   const { isEditMode } = useEditMode();
   const [, navigate] = useLocation();
   const { data: news, isLoading, refetch } = trpc.lab.news.useQuery();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    title: "",
+    category: "",
+    author: "",
+    summary: "",
+    content: "",
+  });
   
   const deleteNewsMutation = trpc.lab.deleteNews.useMutation({
     onSuccess: () => {
@@ -24,11 +43,38 @@ export default function News() {
     },
   });
   
+  const createNewsMutation = trpc.lab.createNews.useMutation({
+    onSuccess: () => {
+      toast.success("新增成功");
+      setFormData({ title: "", category: "", author: "", summary: "", content: "" });
+      setIsDialogOpen(false);
+      refetch();
+    },
+    onError: () => {
+      toast.error("新增失败");
+    },
+  });
+  
   const handleDelete = async (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm("确定要删除这条新闻吗？")) {
       await deleteNewsMutation.mutateAsync({ id });
     }
+  };
+  
+  const handleCreateNews = async () => {
+    if (!formData.title.trim()) {
+      toast.error("请输入新闻标题");
+      return;
+    }
+    await createNewsMutation.mutateAsync({
+      title: formData.title,
+      category: formData.category,
+      author: formData.author,
+      summary: formData.summary,
+      content: formData.content,
+      publishedAt: new Date(),
+    });
   };
 
   if (isLoading) {
@@ -82,6 +128,73 @@ export default function News() {
       <section className="py-16">
         <div className="container">
           <div className="max-w-4xl mx-auto space-y-6">
+            {isEditMode && (
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="w-full bg-accent hover:bg-accent/90">
+                    <Plus className="h-4 w-4 mr-2" />
+                    新增新闻
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>新增新闻</DialogTitle>
+                    <DialogDescription>填写新闻信息</DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium">标题 *</label>
+                      <Input
+                        placeholder="输入新闻标题"
+                        value={formData.title}
+                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">分类</label>
+                      <Input
+                        placeholder="输入分类（如：团队活动）"
+                        value={formData.category}
+                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">作者</label>
+                      <Input
+                        placeholder="输入作者名称"
+                        value={formData.author}
+                        onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">摘要</label>
+                      <Textarea
+                        placeholder="输入新闻摘要"
+                        value={formData.summary}
+                        onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
+                        className="min-h-20"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">内容</label>
+                      <Textarea
+                        placeholder="输入新闻内容"
+                        value={formData.content}
+                        onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                        className="min-h-32"
+                      />
+                    </div>
+                    <Button
+                      onClick={handleCreateNews}
+                      disabled={createNewsMutation.isPending}
+                      className="w-full"
+                    >
+                      {createNewsMutation.isPending ? "创建中..." : "创建"}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
             {news?.map((item) => (
               <Card
                 key={item.id}

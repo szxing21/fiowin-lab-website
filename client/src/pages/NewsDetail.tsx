@@ -149,7 +149,8 @@ export default function NewsDetail() {
         {isEditMode && (
           <button
             onClick={() => handleEdit(field, value)}
-            className="ml-4 p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-accent/10"
+            className="ml-4 p-2 rounded-lg transition-all hover:bg-accent/20 hover:scale-110"
+            title="点击编辑"
           >
             <Edit2 className="h-4 w-4 text-accent" />
           </button>

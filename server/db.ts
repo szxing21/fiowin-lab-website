@@ -328,3 +328,61 @@ export async function deleteNews(id: number) {
     throw error;
   }
 }
+
+export async function createNews(data: {
+  title: string;
+  category?: string;
+  author?: string;
+  summary?: string;
+  content?: string;
+  publishedAt?: Date;
+}) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    return await db.insert(news).values({
+      title: data.title,
+      category: data.category || null,
+      author: data.author || null,
+      summary: data.summary || null,
+      content: data.content || null,
+      publishedAt: data.publishedAt || new Date(),
+    });
+  } catch (error) {
+    console.error("[Database] Failed to create news:", error);
+    throw error;
+  }
+}
+
+export async function createPublication(data: {
+  title: string;
+  authors?: string;
+  journal?: string;
+  year?: number;
+  url?: string;
+  type?: "journal" | "conference";
+  journalTier?: string;
+}) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  try {
+    return await db.insert(publications).values({
+      title: data.title,
+      authors: data.authors || null,
+      journal: data.journal || null,
+      year: data.year || null,
+      url: data.url || null,
+      type: data.type || "journal",
+      journalTier: data.journalTier || null,
+    });
+  } catch (error) {
+    console.error("[Database] Failed to create publication:", error);
+    throw error;
+  }
+}

@@ -1,10 +1,29 @@
 import { trpc } from "@/lib/trpc";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { EditableText } from "@/components/EditableText";
 import { EditablePublication } from "@/components/EditablePublication";
 import { useEditMode } from "@/contexts/EditModeContext";
 import { GeometricDecoration } from "@/components/GeometricDecoration";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const JOURNAL_TIER_ORDER = { top: 0, high: 1, medium: 2, other: 3 };
 
@@ -12,6 +31,53 @@ export default function Publications() {
   const { isEditMode } = useEditMode();
   const { data: publications, isLoading, refetch } = trpc.lab.publications.useQuery();
   const [key, setKey] = useState(0);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    title: "",
+    authors: "",
+    journal: "",
+    year: new Date().getFullYear(),
+    url: "",
+    type: "journal" as "journal" | "conference",
+    journalTier: "other",
+  });
+
+  const createPublicationMutation = trpc.lab.createPublication.useMutation({
+    onSuccess: () => {
+      toast.success("新增成功");
+      setFormData({
+        title: "",
+        authors: "",
+        journal: "",
+        year: new Date().getFullYear(),
+        url: "",
+        type: "journal",
+        journalTier: "other",
+      });
+      setIsDialogOpen(false);
+      refetch();
+      setKey(k => k + 1);
+    },
+    onError: () => {
+      toast.error("新增失败");
+    },
+  });
+
+  const handleCreatePublication = async () => {
+    if (!formData.title.trim()) {
+      toast.error("请输入论文标题");
+      return;
+    }
+    await createPublicationMutation.mutateAsync({
+      title: formData.title,
+      authors: formData.authors,
+      journal: formData.journal,
+      year: formData.year,
+      url: formData.url,
+      type: formData.type,
+      journalTier: formData.journalTier,
+    });
+  };
 
   // Sort publications by journal tier and year (descending)
   const sortedPublications = useMemo(() => {
@@ -105,6 +171,99 @@ export default function Publications() {
 
         {/* Publications List */}
         <div className="max-w-4xl mx-auto">
+          {isEditMode && (
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full bg-accent hover:bg-accent/90 mb-6">
+                  <Plus className="h-4 w-4 mr-2" />
+                  新增研究成果
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>新增研究成果</DialogTitle>
+                  <DialogDescription>填写论文信息</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">标题 *</label>
+                    <Input
+                      placeholder="输入论文标题"
+                      value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">作者</label>
+                    <Input
+                      placeholder="输入作者名称（用逗号分隔）"
+                      value={formData.authors}
+                      onChange={(e) => setFormData({ ...formData, authors: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">期刊/会议名称</label>
+                    <Input
+                      placeholder="输入期刊或会议名称"
+                      value={formData.journal}
+                      onChange={(e) => setFormData({ ...formData, journal: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">年份</label>
+                    <Input
+                      type="number"
+                      placeholder="输入发表年份"
+                      value={formData.year}
+                      onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) || new Date().getFullYear() })}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">类型</label>
+                    <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value as "journal" | "conference" })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="journal">期刊论文</SelectItem>
+                        <SelectItem value="conference">会议论文</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">期刊等级</label>
+                    <Select value={formData.journalTier} onValueChange={(value) => setFormData({ ...formData, journalTier: value })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="other">未分类</SelectItem>
+                        <SelectItem value="top">Top</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">链接</label>
+                    <Input
+                      placeholder="输入论文链接（可选）"
+                      value={formData.url}
+                      onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                    />
+                  </div>
+                  <Button
+                    onClick={handleCreatePublication}
+                    disabled={createPublicationMutation.isPending}
+                    className="w-full"
+                  >
+                    {createPublicationMutation.isPending ? "创建中..." : "创建"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
           {years.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground">暂无论文数据</p>

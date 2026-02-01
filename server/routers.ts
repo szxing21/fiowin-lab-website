@@ -19,8 +19,10 @@ import {
   updateMember,
   deleteMember,
   updateMembersOrder,
+  createPublication,
   updatePublication,
   deletePublication,
+  createNews,
   updateNews,
   deleteNews
 } from "./db";
@@ -162,6 +164,17 @@ export const appRouter = router({
     deletePublication: publicProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
       return deletePublication(input.id);
     }),
+    createPublication: publicProcedure.input(z.object({
+      title: z.string(),
+      authors: z.string().optional(),
+      journal: z.string().optional(),
+      year: z.number().optional(),
+      url: z.string().optional(),
+      type: z.enum(["journal", "conference"]).optional(),
+      journalTier: z.string().optional(),
+    })).mutation(async ({ input }) => {
+      return createPublication(input);
+    }),
     updateNews: publicProcedure.input(z.object({
       id: z.number(),
       title: z.string().optional(),
@@ -175,6 +188,16 @@ export const appRouter = router({
     }),
     deleteNews: publicProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
       return deleteNews(input.id);
+    }),
+    createNews: publicProcedure.input(z.object({
+      title: z.string(),
+      category: z.string().optional(),
+      author: z.string().optional(),
+      summary: z.string().optional(),
+      content: z.string().optional(),
+      publishedAt: z.date().optional(),
+    })).mutation(async ({ input }) => {
+      return createNews(input);
     }),
   }),
 });
