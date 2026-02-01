@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,18 +10,56 @@ export default function AdminLogin() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [, setLocation] = useLocation();
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  
   const loginMutation = trpc.admin.login.useMutation();
+  
+  // 监听认证状态
+  const { data: authData, isLoading: isAuthLoading } = trpc.auth.me.useQuery(undefined, {
+    retry: false,
+  });
+
+  // 如果已经登录，自动跳转到编辑器
+  useEffect(() => {
+    if (authData?.id && !isAuthLoading && !isLoggingIn) {
+      setLocation("/admin/editor");
+    }
+  }, [authData, isAuthLoading, isLoggingIn, setLocation]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoggingIn(true);
+    
     try {
+      // 执行登录
       await loginMutation.mutateAsync({ username, password });
       toast.success("登录成功");
-      setLocation("/admin/editor");
+      
+      // 登录成功后，等待一下让认证状态更新
+      // 然后自动跳转（由useEffect处理）
+      setTimeout(() => {
+        setIsLoggingIn(false);
+      }, 500);
     } catch (error) {
       toast.error("用户名或密码错误");
+      setIsLoggingIn(false);
     }
   };
+
+  // 如果已经在加载认证状态或正在登录，显示加载状态
+  if (isAuthLoading || isLoggingIn) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-8">
+            <div className="text-center">
+              <p className="text-lg">正在处理...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -40,6 +78,7 @@ export default function AdminLogin() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
+                disabled={loginMutation.isPending}
               />
             </div>
             <div>
@@ -50,6 +89,7 @@ export default function AdminLogin() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={loginMutation.isPending}
               />
             </div>
             <Button
