@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 interface EditModeContextType {
   isEditMode: boolean;
@@ -10,8 +10,27 @@ interface EditModeContextType {
 const EditModeContext = createContext<EditModeContextType | undefined>(undefined);
 
 export function EditModeProvider({ children }: { children: React.ReactNode }) {
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('admin_logged_in') === 'true';
+    }
+    return false;
+  });
+  const [isAdmin, setIsAdmin] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('admin_logged_in') === 'true';
+    }
+    return false;
+  });
+
+  // 当isEditMode改变时，同步到localStorage
+  useEffect(() => {
+    if (isEditMode) {
+      localStorage.setItem('admin_logged_in', 'true');
+    } else {
+      localStorage.removeItem('admin_logged_in');
+    }
+  }, [isEditMode]);
 
   return (
     <EditModeContext.Provider value={{ isEditMode, setIsEditMode, isAdmin, setIsAdmin }}>

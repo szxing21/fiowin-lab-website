@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Edit2 } from "lucide-react";
+import { Menu, X, LogIn, Edit2 } from "lucide-react";
 import { useState } from "react";
 import { useEditMode } from "@/contexts/EditModeContext";
 
@@ -16,11 +16,15 @@ const navItems = [
 ];
 
 export function Navbar() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isEditMode, setIsEditMode, setIsAdmin } = useEditMode();
   
-  const toggleEditMode = () => {
+  const handleLoginClick = () => {
+    setLocation("/admin");
+  };
+  
+  const handleEditToggle = () => {
     const newEditMode = !isEditMode;
     setIsEditMode(newEditMode);
     setIsAdmin(newEditMode);
@@ -60,17 +64,29 @@ export function Navbar() {
             })}
           </div>
 
-          {/* Edit Mode Toggle Button */}
+          {/* Login/Edit Mode Button */}
           <div className="flex items-center space-x-2">
-            <Button
-              variant={isEditMode ? "default" : "outline"}
-              size="sm"
-              onClick={toggleEditMode}
-              className="flex items-center space-x-2"
-            >
-              <Edit2 className="h-4 w-4" />
-              <span className="hidden sm:inline">{isEditMode ? "退出编辑" : "编辑"}</span>
-            </Button>
+            {isEditMode ? (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleEditToggle}
+                className="flex items-center space-x-2"
+              >
+                <Edit2 className="h-4 w-4" />
+                <span className="hidden sm:inline">退出编辑</span>
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLoginClick}
+                className="flex items-center space-x-2"
+              >
+                <LogIn className="h-4 w-4" />
+                <span className="hidden sm:inline">登录</span>
+              </Button>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
