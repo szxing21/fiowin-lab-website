@@ -26,9 +26,11 @@ import {
   updateNews,
   deleteNews
 } from "./db";
+import { uploadRouter } from "./upload";
 
 export const appRouter = router({
   system: systemRouter,
+  upload: uploadRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
@@ -70,6 +72,7 @@ export const appRouter = router({
       contentHtml: z.string().optional(),
       contentJson: z.string().optional(),
       description: z.string().optional(),
+      logoUrl: z.string().optional(),
     })).mutation(async ({ input }) => {
       return upsertPage(input.slug, input);
     }),

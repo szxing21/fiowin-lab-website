@@ -95,6 +95,7 @@ export const news = mysqlTable("news", {
   category: varchar("category", { length: 64 }),
   author: varchar("author", { length: 128 }),
   coverImage: text("coverImage"),
+  images: text("images"), // JSON array of image URLs
   publishedAt: timestamp("publishedAt").notNull(),
   featured: int("featured").default(0),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -135,6 +136,7 @@ export const researchAreas = mysqlTable("researchAreas", {
   description: text("description"),
   topics: text("topics"),
   icon: varchar("icon", { length: 64 }),
+  imageUrl: text("imageUrl"), // URL to research area image/icon
   displayOrder: int("displayOrder").default(0),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -150,6 +152,7 @@ export const pages = mysqlTable("pages", {
   contentHtml: text("contentHtml"),
   contentJson: text("contentJson"),
   description: text("description"),
+  logoUrl: text("logoUrl"), // URL to laboratory logo
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

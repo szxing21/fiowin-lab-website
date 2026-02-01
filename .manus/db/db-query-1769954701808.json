@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE `news` ADD `images` text;\nALTER TABLE `pages` ADD `logoUrl` text;\nALTER TABLE `researchAreas` ADD `imageUrl` text;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user czqs44QUsyTYvhK.root --database CiwxvFQvMALUxAkuS7uyUE --execute ALTER TABLE `news` ADD `images` text;\nALTER TABLE `pages` ADD `logoUrl` text;\nALTER TABLE `researchAreas` ADD `imageUrl` text;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 3783
+}

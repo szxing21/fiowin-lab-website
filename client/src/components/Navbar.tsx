@@ -1,8 +1,11 @@
-import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogIn, Edit2 } from "lucide-react";
+import { Menu, X, LogIn, Edit2, Upload } from "lucide-react";
 import { useState } from "react";
+import { useLocation, Link } from "wouter";
 import { useEditMode } from "@/contexts/EditModeContext";
+import { trpc } from "@/lib/trpc";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ImageUpload } from "./ImageUpload";
 
 const navItems = [
   { label: "首页", href: "/" },
@@ -19,6 +22,10 @@ export function Navbar() {
   const [location, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isEditMode, setIsEditMode, setIsAdmin } = useEditMode();
+  const [logoUploadOpen, setLogoUploadOpen] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const { data: homePage } = trpc.admin.getPage.useQuery({ slug: "home" });
+  const savePageMutation = trpc.admin.savePage.useMutation();
   
   const handleLoginClick = () => {
     setLocation("/admin");
@@ -30,15 +37,44 @@ export function Navbar() {
     setIsAdmin(newEditMode);
   };
 
+  const handleLogoUpload = async (url: string) => {
+    setLogoUrl(url);
+    await savePageMutation.mutateAsync({
+      slug: "home",
+      title: homePage?.title || "首页",
+      logoUrl: url,
+    });
+    setLogoUploadOpen(false);
+  };
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/">
-            <div className="flex items-center space-x-3 cursor-pointer">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent to-chart-2 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">F</span>
+            <div className="flex items-center space-x-3 cursor-pointer group relative">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent to-chart-2 flex items-center justify-center relative overflow-hidden">
+                {logoUrl || homePage?.logoUrl ? (
+                  <img
+                    src={logoUrl || homePage?.logoUrl || ""}
+                    alt="Logo"
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                ) : (
+                  <span className="text-white font-bold text-lg">F</span>
+                )}
+                {isEditMode && (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setLogoUploadOpen(true);
+                    }}
+                    className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Upload className="w-4 h-4 text-white" />
+                  </button>
+                )}
               </div>
               <div className="hidden sm:block">
                 <div className="text-lg font-bold text-foreground">FiOWIN Lab</div>
@@ -63,6 +99,21 @@ export function Navbar() {
               );
             })}
           </div>
+
+          {/* Logo Upload Dialog */}
+          <Dialog open={logoUploadOpen} onOpenChange={setLogoUploadOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>上传实验室 Logo</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <ImageUpload
+                  onUpload={handleLogoUpload}
+                  disabled={savePageMutation.isPending}
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
 
           {/* Login/Edit Mode Button */}
           <div className="flex items-center space-x-2">
@@ -90,36 +141,33 @@ export function Navbar() {
           </div>
 
           {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
+          <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden ml-2 p-2 hover:bg-accent/10 rounded-lg"
           >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 space-y-2 border-t border-border/40">
-            {navItems.map((item) => {
-              const isActive = location === item.href;
-              return (
-                <Link key={item.href} href={item.href}>
-                  <div
-                    className={`block px-4 py-2 rounded-lg text-sm font-medium ${
-                      isActive
-                        ? "bg-accent/20 text-foreground"
-                        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                    }`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {item.label}
-                  </div>
-                </Link>
-              );
-            })}
+          <div className="md:hidden border-t border-border/40 bg-background/95">
+            <div className="flex flex-col space-y-1 p-4">
+              {navItems.map((item) => {
+                const isActive = location === item.href;
+                return (
+                  <Link key={item.href} href={item.href}>
+                    <Button
+                      variant={isActive ? "secondary" : "ghost"}
+                      className="w-full justify-start"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {item.label}
+                    </Button>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
