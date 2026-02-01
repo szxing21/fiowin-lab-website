@@ -10,6 +10,7 @@ const navItems = [
   { label: "研究方向", href: "/research" },
   { label: "新闻动态", href: "/news" },
   { label: "学术会议", href: "/conferences" },
+  { label: "数据分析", href: "/analytics" },
   { label: "联系我们", href: "/contact" },
 ];
 
