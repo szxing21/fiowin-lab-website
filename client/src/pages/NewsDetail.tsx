@@ -3,10 +3,12 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, ArrowLeft, Edit2, Trash2, Check, X } from "lucide-react";
+import { Calendar, ArrowLeft, Edit2, Trash2, Check, X, Upload, Trash } from "lucide-react";
 import { useState } from "react";
 import { useEditMode } from "@/contexts/EditModeContext";
 import { toast } from "sonner";
+import { ImageUpload } from "@/components/ImageUpload";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function NewsDetail() {
   const { id } = useParams<{ id: string }>();
@@ -16,6 +18,7 @@ export default function NewsDetail() {
   
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<Record<string, string>>({});
+  const [imageUploadOpen, setImageUploadOpen] = useState(false);
   
   const updateNewsMutation = trpc.lab.updateNews.useMutation({
     onSuccess: () => {
@@ -93,6 +96,33 @@ export default function NewsDetail() {
     }
   };
 
+  const handleImageUpload = async (url: string) => {
+    const currentImages = newsItem?.images ? JSON.parse(newsItem.images) : [];
+    const newImages = [...currentImages, url];
+    try {
+      await updateNewsMutation.mutateAsync({
+        id: newsItem.id,
+        images: JSON.stringify(newImages),
+      });
+      toast.success("图片上传成功");
+      setImageUploadOpen(false);
+      await refetch();
+    } catch (error) {
+      toast.error("图片上传失败");
+    }
+  };
+
+  const handleDeleteImage = async (index: number) => {
+    const currentImages = newsItem?.images ? JSON.parse(newsItem.images) : [];
+    const newImages = currentImages.filter((_: string, i: number) => i !== index);
+    await updateNewsMutation.mutateAsync({
+      id: newsItem.id,
+      images: JSON.stringify(newImages),
+    });
+    toast.success("图片删除成功");
+    refetch();
+  };
+
   const renderEditableField = (field: string, value: string, label: string, isTextarea = false) => {
     const isEditing = editingField === field;
 
@@ -102,18 +132,21 @@ export default function NewsDetail() {
           <label className="text-sm font-medium text-muted-foreground">{label}</label>
           {isTextarea ? (
             <textarea
-              value={editValues[field] || value}
+              value={editValues[field] !== undefined ? editValues[field] : value}
               onChange={(e) => setEditValues({ ...editValues, [field]: e.target.value })}
-              className="w-full min-h-32 p-3 rounded-lg border border-input bg-background text-foreground"
+              className="w-full px-3 py-2 rounded-lg border border-input bg-background text-foreground"
               placeholder={`输入${label}`}
+              rows={5}
+              autoFocus
             />
           ) : (
             <input
               type="text"
-              value={editValues[field] || value}
+              value={editValues[field] !== undefined ? editValues[field] : value}
               onChange={(e) => setEditValues({ ...editValues, [field]: e.target.value })}
               className="w-full px-3 py-2 rounded-lg border border-input bg-background text-foreground"
               placeholder={`输入${label}`}
+              autoFocus
             />
           )}
           <div className="flex gap-2">
@@ -141,10 +174,12 @@ export default function NewsDetail() {
     }
 
     return (
-      <div className="flex items-start justify-between group">
-        <div className="flex-1">
-          <label className="text-sm font-medium text-muted-foreground block mb-2">{label}</label>
-          <p className="text-foreground whitespace-pre-wrap">{value || "未设置"}</p>
+      <div className="space-y-2 group">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="text-foreground">{value || "未设置"}</p>
+          </div>
         </div>
         {isEditMode && (
           <button
@@ -158,6 +193,8 @@ export default function NewsDetail() {
       </div>
     );
   };
+
+  const images = newsItem?.images ? JSON.parse(newsItem.images) : [];
 
   return (
     <div className="min-h-screen py-16 bg-background">
@@ -231,7 +268,7 @@ export default function NewsDetail() {
                   {isEditMode && (
                     <button
                       onClick={() => handleEdit("title", newsItem.title)}
-                      className="text-sm text-accent hover:underline flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="text-sm text-accent hover:underline flex items-center gap-1 opacity-100"
                     >
                       <Edit2 className="h-3 w-3" />
                       编辑标题
@@ -243,6 +280,54 @@ export default function NewsDetail() {
 
             {/* Divider */}
             <div className="border-t border-border" />
+
+            {/* Images Section */}
+            {images.length > 0 && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold">新闻图片</h2>
+                  {isEditMode && (
+                    <button
+                      onClick={() => setImageUploadOpen(true)}
+                      className="flex items-center gap-1 text-sm text-accent hover:underline"
+                    >
+                      <Upload className="h-4 w-4" />
+                      添加图片
+                    </button>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {images.map((image: string, index: number) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={image}
+                        alt={`News image ${index + 1}`}
+                        className="w-full h-48 object-cover rounded-lg"
+                      />
+                      {isEditMode && (
+                        <button
+                          onClick={() => handleDeleteImage(index)}
+                          className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Trash className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Add Images Button */}
+            {isEditMode && images.length === 0 && (
+              <button
+                onClick={() => setImageUploadOpen(true)}
+                className="w-full py-8 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center gap-2 hover:bg-accent/5 transition-colors"
+              >
+                <Upload className="h-8 w-8 text-muted-foreground" />
+                <span className="text-muted-foreground">点击添加新闻图片</span>
+              </button>
+            )}
 
             {/* Content Fields */}
             <div className="space-y-8">
@@ -268,6 +353,21 @@ export default function NewsDetail() {
             )}
           </CardContent>
         </Card>
+
+        {/* Image Upload Dialog */}
+        <Dialog open={imageUploadOpen} onOpenChange={setImageUploadOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>上传新闻图片</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <ImageUpload
+                onUpload={handleImageUpload}
+                disabled={updateNewsMutation.isPending}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

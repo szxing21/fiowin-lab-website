@@ -185,6 +185,7 @@ export const appRouter = router({
       author: z.string().optional(),
       summary: z.string().optional(),
       content: z.string().optional(),
+      images: z.string().optional(),
     })).mutation(async ({ input }) => {
       const { id, ...data } = input;
       return updateNews(id, data);

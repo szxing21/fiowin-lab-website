@@ -308,7 +308,20 @@ export async function updateNews(id: number, data: Record<string, any>) {
   }
 
   try {
-    return await db.update(news).set(data).where(eq(news.id, id));
+    const updateData: Record<string, any> = {};
+    const allowedFields = ['title', 'category', 'author', 'summary', 'content', 'images'];
+    
+    for (const field of allowedFields) {
+      if (field in data && data[field] !== undefined && data[field] !== null) {
+        updateData[field] = data[field];
+      }
+    }
+    
+    if (Object.keys(updateData).length === 0) {
+      throw new Error("No valid fields to update");
+    }
+    
+    return await db.update(news).set(updateData).where(eq(news.id, id));
   } catch (error) {
     console.error("[Database] Failed to update news:", error);
     throw error;
