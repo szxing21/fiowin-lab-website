@@ -18,19 +18,26 @@ export default function AdminLogin() {
     setIsLoggingIn(true);
     
     try {
-      // 验证凭证
-      const adminUsername = "LabAdmin";
-      const adminPassword = "FiowinLab2021";
+      // 支持多个管理员账号
+      const validAccounts = [
+        { username: "LabAdmin", password: "FiowinLab2021" },
+        { username: "test", password: "test20260201" }
+      ];
       
-      if (username === adminUsername && password === adminPassword) {
+      const isValidAccount = validAccounts.some(
+        (account) => account.username === username && account.password === password
+      );
+      
+      if (isValidAccount) {
         // 登录成功，设置编辑模式
         setIsEditMode(true);
         setIsAdmin(true);
         
         // 保存登录状态到localStorage
         localStorage.setItem("admin_logged_in", "true");
+        localStorage.setItem("admin_username", username);
         
-        toast.success("登录成功");
+        toast.success(`欢迎回来，${username}！`);
         
         // 跳转到首页
         setTimeout(() => {
