@@ -4,8 +4,11 @@ import { GeometricDecoration } from "@/components/GeometricDecoration";
 import { trpc } from "@/lib/trpc";
 import { ArrowRight, Award, BookOpen, Users, Zap } from "lucide-react";
 import { Link } from "wouter";
+import { EditableText } from "@/components/EditableText";
+import { useEditMode } from "@/contexts/EditModeContext";
 
 export default function Home() {
+  const { isEditMode } = useEditMode();
   const { data: researchAreas, isLoading: areasLoading } = trpc.lab.researchAreas.useQuery();
   const { data: featuredNews, isLoading: newsLoading } = trpc.lab.featuredNews.useQuery();
 
@@ -51,10 +54,28 @@ export default function Home() {
         <GeometricDecoration variant="section" />
         <div className="container relative z-10">
           <div className="max-w-3xl mx-auto text-center space-y-6">
-            <h2 className="text-3xl md:text-5xl font-bold text-foreground">关于实验室</h2>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              未来智能光子无线融合实验室（FiOWIN Lab）隶属于复旦大学未来信息创新学院，由张俊文教授和迟楠教授领导。实验室专注于光通信系统、光电子器件、光纤-无线融合、光互连与光计算、智能信号处理等前沿领域的研究，致力于为6G通信、数据中心互连和智能计算中心提供创新的硬件基础和技术支撑。
-            </p>
+            {isEditMode ? (
+              <EditableText
+                slug="home-about-title"
+                field="title"
+                content="关于实验室"
+                className="text-3xl md:text-5xl font-bold text-foreground"
+              />
+            ) : (
+              <h2 className="text-3xl md:text-5xl font-bold text-foreground">关于实验室</h2>
+            )}
+            {isEditMode ? (
+              <EditableText
+                slug="home-about-content"
+                field="content"
+                content="未来智能光子无线融合实验室（FiOWIN Lab）隶属于复旨大学未来信息创新学院，由张俊文教授和迟楠教授领导。实验室专注于光通信系统、光电子器件、光纤-无线融合、光互连与光计算、智能信号处理等前沿领域的研究，致力于为6G通信、数据中心互连和智能计算中心提供创新的硬件基础和技术支撑。"
+                className="text-lg text-muted-foreground leading-relaxed"
+              />
+            ) : (
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                未来智能光子无线融合实验室（FiOWIN Lab）隶属于复旨大学未来信息创新学院，由张俊文教授和迟楠教授领导。实验室专注于光通信系统、光电子器件、光纤-无线融合、光互连与光计算、智能信号处理等前沿领域的研究，致力于为6G通信、数据中心互连和智能计算中心提供创新的硬件基础和技术支撑。
+              </p>
+            )}
           </div>
         </div>
       </section>
@@ -63,8 +84,26 @@ export default function Home() {
       <section className="py-16 md:py-24">
         <div className="container">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">研究方向</h2>
-            <p className="text-lg text-muted-foreground">探索光通信与无线融合的多个前沿领域</p>
+            {isEditMode ? (
+              <EditableText
+                slug="home-research-title"
+                field="title"
+                content="研究方向"
+                className="text-3xl md:text-5xl font-bold text-foreground mb-4"
+              />
+            ) : (
+              <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">研究方向</h2>
+            )}
+            {isEditMode ? (
+              <EditableText
+                slug="home-research-subtitle"
+                field="content"
+                content="探索光通信与无线融合的多个前沿领域"
+                className="text-lg text-muted-foreground"
+              />
+            ) : (
+              <p className="text-lg text-muted-foreground">探索光通信与无线融合的多个前沿领域</p>
+            )}
           </div>
 
           {areasLoading ? (

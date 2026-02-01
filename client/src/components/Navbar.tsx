@@ -1,7 +1,8 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Edit2 } from "lucide-react";
 import { useState } from "react";
+import { useEditMode } from "@/contexts/EditModeContext";
 
 const navItems = [
   { label: "首页", href: "/" },
@@ -17,6 +18,8 @@ const navItems = [
 export function Navbar() {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isEditMode, setIsEditMode } = useEditMode();
+  const toggleEditMode = () => setIsEditMode(!isEditMode);
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -36,7 +39,7 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden md:flex items-center space-x-1 flex-1 justify-center">
             {navItems.map((item) => {
               const isActive = location === item.href;
               return (
@@ -50,6 +53,19 @@ export function Navbar() {
                 </Link>
               );
             })}
+          </div>
+
+          {/* Edit Mode Toggle Button */}
+          <div className="flex items-center space-x-2">
+            <Button
+              variant={isEditMode ? "default" : "outline"}
+              size="sm"
+              onClick={toggleEditMode}
+              className="flex items-center space-x-2"
+            >
+              <Edit2 className="h-4 w-4" />
+              <span className="hidden sm:inline">{isEditMode ? "退出编辑" : "编辑"}</span>
+            </Button>
           </div>
 
           {/* Mobile Menu Button */}
