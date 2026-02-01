@@ -3,8 +3,11 @@ import { Badge } from "@/components/ui/badge";
 import { GeometricDecoration } from "@/components/GeometricDecoration";
 import { trpc } from "@/lib/trpc";
 import { Calendar } from "lucide-react";
+import { EditableText } from "@/components/EditableText";
+import { useEditMode } from "@/contexts/EditModeContext";
 
 export default function News() {
+  const { isEditMode } = useEditMode();
   const { data: news, isLoading } = trpc.lab.news.useQuery();
 
   if (isLoading) {
@@ -27,10 +30,29 @@ export default function News() {
         <GeometricDecoration variant="hero" />
         <div className="container relative z-10">
           <div className="max-w-3xl mx-auto text-center space-y-6">
-            <h1 className="text-4xl md:text-6xl font-bold text-foreground">新闻动态</h1>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              了解实验室的最新进展、团队活动、获奖信息和学术交流
-            </p>
+            {isEditMode ? (
+              <EditableText
+                slug="news-title"
+                field="title"
+                content="新闻动态"
+                className="text-4xl md:text-6xl font-bold text-foreground"
+                as="h1"
+              />
+            ) : (
+              <h1 className="text-4xl md:text-6xl font-bold text-foreground">新闻动态</h1>
+            )}
+            {isEditMode ? (
+              <EditableText
+                slug="news-description"
+                field="content"
+                content="了解实验室的最新进展、团队活动、获奖信息和学术交流"
+                className="text-lg text-muted-foreground leading-relaxed"
+              />
+            ) : (
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                了解实验室的最新进展、团队活动、获奖信息和学术交流
+              </p>
+            )}
           </div>
         </div>
       </section>

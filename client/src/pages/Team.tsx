@@ -4,8 +4,11 @@ import { GeometricDecoration } from "@/components/GeometricDecoration";
 import { trpc } from "@/lib/trpc";
 import { Award, BookOpen, User } from "lucide-react";
 import { Link } from "wouter";
+import { EditableText } from "@/components/EditableText";
+import { useEditMode } from "@/contexts/EditModeContext";
 
 export default function Team() {
+  const { isEditMode } = useEditMode();
   const { data: members, isLoading } = trpc.lab.members.useQuery();
 
   const groupedMembers = {
@@ -44,10 +47,29 @@ export default function Team() {
         <GeometricDecoration variant="hero" />
         <div className="container relative z-10">
           <div className="max-w-3xl mx-auto text-center space-y-6">
-            <h1 className="text-4xl md:text-6xl font-bold text-foreground">团队成员</h1>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              我们的团队由经验丰富的导师、充满活力的博士后和研究生组成，共同推动光通信领域的前沿研究
-            </p>
+            {isEditMode ? (
+              <EditableText
+                slug="team-title"
+                field="title"
+                content="团队成员"
+                className="text-4xl md:text-6xl font-bold text-foreground"
+                as="h1"
+              />
+            ) : (
+              <h1 className="text-4xl md:text-6xl font-bold text-foreground">团队成员</h1>
+            )}
+            {isEditMode ? (
+              <EditableText
+                slug="team-description"
+                field="content"
+                content="我们的团队由经验丰富的导师、充满活力的博士后和研究生组成，共同推动光通信领域的前沿研究"
+                className="text-lg text-muted-foreground leading-relaxed"
+              />
+            ) : (
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                我们的团队由经验丰富的导师、充满活力的博士后和研究生组成，共同推动光通信领域的前沿研究
+              </p>
+            )}
           </div>
         </div>
       </section>

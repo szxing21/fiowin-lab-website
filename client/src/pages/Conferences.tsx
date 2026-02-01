@@ -3,8 +3,11 @@ import { Badge } from "@/components/ui/badge";
 import { GeometricDecoration } from "@/components/GeometricDecoration";
 import { trpc } from "@/lib/trpc";
 import { Calendar, FileText, MapPin, Presentation, Users } from "lucide-react";
+import { EditableText } from "@/components/EditableText";
+import { useEditMode } from "@/contexts/EditModeContext";
 
 export default function Conferences() {
+  const { isEditMode } = useEditMode();
   const { data: conferences, isLoading } = trpc.lab.conferences.useQuery();
 
   if (isLoading) {
@@ -27,10 +30,29 @@ export default function Conferences() {
         <GeometricDecoration variant="hero" />
         <div className="container relative z-10">
           <div className="max-w-3xl mx-auto text-center space-y-6">
-            <h1 className="text-4xl md:text-6xl font-bold text-foreground">学术会议</h1>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              我们积极参与国际顶级学术会议，展示最新研究成果，与全球学者交流合作
-            </p>
+            {isEditMode ? (
+              <EditableText
+                slug="conferences-title"
+                field="title"
+                content="学术会议"
+                className="text-4xl md:text-6xl font-bold text-foreground"
+                as="h1"
+              />
+            ) : (
+              <h1 className="text-4xl md:text-6xl font-bold text-foreground">学术会议</h1>
+            )}
+            {isEditMode ? (
+              <EditableText
+                slug="conferences-description"
+                field="content"
+                content="我们积极参与国际顶级学术会议，展示最新研究成果，与全球学者交流合作"
+                className="text-lg text-muted-foreground leading-relaxed"
+              />
+            ) : (
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                我们积极参与国际顶级学术会议，展示最新研究成果，与全球学者交流合作
+              </p>
+            )}
           </div>
         </div>
       </section>

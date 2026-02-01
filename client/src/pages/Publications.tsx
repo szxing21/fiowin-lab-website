@@ -2,10 +2,13 @@ import { GeometricDecoration } from "@/components/GeometricDecoration";
 import { trpc } from "@/lib/trpc";
 import { ExternalLink } from "lucide-react";
 import { useMemo } from "react";
+import { EditableText } from "@/components/EditableText";
+import { useEditMode } from "@/contexts/EditModeContext";
 
 const JOURNAL_TIER_ORDER = { top: 0, high: 1, medium: 2, other: 3 };
 
 export default function Publications() {
+  const { isEditMode } = useEditMode();
   const { data: publications, isLoading } = trpc.lab.publications.useQuery();
 
   // Sort publications by journal tier and year (descending)
@@ -73,10 +76,29 @@ export default function Publications() {
       <div className="container relative z-10">
         {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-4">研究成果</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            我们的研究成果发表在Nature Communications等国际顶级期刊和会议上，推动光通信领域的技术进步
-          </p>
+          {isEditMode ? (
+            <EditableText
+              slug="publications-title"
+              field="title"
+              content="研究成果"
+              className="text-4xl md:text-6xl font-bold text-foreground mb-4"
+              as="h1"
+            />
+          ) : (
+            <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-4">研究成果</h1>
+          )}
+          {isEditMode ? (
+            <EditableText
+              slug="publications-description"
+              field="content"
+              content="我们的研究成果发表在Nature Communications等国际顶级期刊和会议上，推动光通信领域的技术进步"
+              className="text-lg text-muted-foreground max-w-2xl mx-auto"
+            />
+          ) : (
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              我们的研究成果发表在Nature Communications等国际顶级期刊和会议上，推动光通信领域的技术进步
+            </p>
+          )}
         </div>
 
         {/* Publications List */}

@@ -60,6 +60,7 @@ export default function Home() {
                 field="title"
                 content="关于实验室"
                 className="text-3xl md:text-5xl font-bold text-foreground"
+                as="h2"
               />
             ) : (
               <h2 className="text-3xl md:text-5xl font-bold text-foreground">关于实验室</h2>
@@ -90,6 +91,7 @@ export default function Home() {
                 field="title"
                 content="研究方向"
                 className="text-3xl md:text-5xl font-bold text-foreground mb-4"
+                as="h2"
               />
             ) : (
               <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">研究方向</h2>

@@ -2,6 +2,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { GeometricDecoration } from "@/components/GeometricDecoration";
 import { trpc } from "@/lib/trpc";
 import { Brain, Cpu, Network, Radio, Zap } from "lucide-react";
+import { EditableText } from "@/components/EditableText";
+import { useEditMode } from "@/contexts/EditModeContext";
 
 const iconMap: Record<string, any> = {
   Network,
@@ -12,6 +14,7 @@ const iconMap: Record<string, any> = {
 };
 
 export default function Research() {
+  const { isEditMode } = useEditMode();
   const { data: researchAreas, isLoading } = trpc.lab.researchAreas.useQuery();
 
   if (isLoading) {
@@ -34,10 +37,29 @@ export default function Research() {
         <GeometricDecoration variant="hero" />
         <div className="container relative z-10">
           <div className="max-w-3xl mx-auto text-center space-y-6">
-            <h1 className="text-4xl md:text-6xl font-bold text-foreground">研究方向</h1>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              我们专注于光通信与无线融合的多个前沿领域，推动未来信息网络的技术创新
-            </p>
+            {isEditMode ? (
+              <EditableText
+                slug="research-title"
+                field="title"
+                content="研究方向"
+                className="text-4xl md:text-6xl font-bold text-foreground"
+                as="h1"
+              />
+            ) : (
+              <h1 className="text-4xl md:text-6xl font-bold text-foreground">研究方向</h1>
+            )}
+            {isEditMode ? (
+              <EditableText
+                slug="research-description"
+                field="content"
+                content="我们专注于光通信与无线融合的多个前沿领域，推动未来信息网络的技术创新"
+                className="text-lg text-muted-foreground leading-relaxed"
+              />
+            ) : (
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                我们专注于光通信与无线融合的多个前沿领域，推动未来信息网络的技术创新
+              </p>
+            )}
           </div>
         </div>
       </section>

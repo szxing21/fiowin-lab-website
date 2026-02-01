@@ -18,8 +18,13 @@ const navItems = [
 export function Navbar() {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { isEditMode, setIsEditMode } = useEditMode();
-  const toggleEditMode = () => setIsEditMode(!isEditMode);
+  const { isEditMode, setIsEditMode, setIsAdmin } = useEditMode();
+  
+  const toggleEditMode = () => {
+    const newEditMode = !isEditMode;
+    setIsEditMode(newEditMode);
+    setIsAdmin(newEditMode);
+  };
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

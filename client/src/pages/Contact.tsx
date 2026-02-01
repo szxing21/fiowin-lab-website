@@ -1,8 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { GeometricDecoration } from "@/components/GeometricDecoration";
 import { Building2, Mail, MapPin, MessageSquare } from "lucide-react";
+import { EditableText } from "@/components/EditableText";
+import { useEditMode } from "@/contexts/EditModeContext";
 
 export default function Contact() {
+  const { isEditMode } = useEditMode();
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -10,10 +13,29 @@ export default function Contact() {
         <GeometricDecoration variant="hero" />
         <div className="container relative z-10">
           <div className="max-w-3xl mx-auto text-center space-y-6">
-            <h1 className="text-4xl md:text-6xl font-bold text-foreground">联系我们</h1>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              欢迎与我们交流合作，共同推动光通信领域的发展
-            </p>
+            {isEditMode ? (
+              <EditableText
+                slug="contact-title"
+                field="title"
+                content="联系我们"
+                className="text-4xl md:text-6xl font-bold text-foreground"
+                as="h1"
+              />
+            ) : (
+              <h1 className="text-4xl md:text-6xl font-bold text-foreground">联系我们</h1>
+            )}
+            {isEditMode ? (
+              <EditableText
+                slug="contact-description"
+                field="content"
+                content="欢迎与我们交流合作，共同推动光通信领域的发展"
+                className="text-lg text-muted-foreground leading-relaxed"
+              />
+            ) : (
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                欢迎与我们交流合作，共同推动光通信领域的发展
+              </p>
+            )}
           </div>
         </div>
       </section>

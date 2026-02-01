@@ -20,7 +20,7 @@ export function EditableText({
   className = "",
   as: Component = "p",
 }: EditableTextProps) {
-  const { isEditMode, isAdmin } = useEditMode();
+  const { isEditMode } = useEditMode();
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(content);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -55,7 +55,7 @@ export function EditableText({
     setIsEditing(false);
   };
 
-  if (!isEditMode || !isAdmin) {
+  if (!isEditMode) {
     return (
       <Component className={className}>
         {content}
