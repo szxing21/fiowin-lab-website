@@ -4,9 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { useEditMode } from "@/contexts/EditModeContext";
-import { ArrowLeft, Edit2, X, Check } from "lucide-react";
+import { ArrowLeft, Edit2, X, Check, Upload } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { ImageUpload } from "@/components/ImageUpload";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function MemberDetail() {
   const [, params] = useRoute("/member/:id");
@@ -25,6 +27,7 @@ export default function MemberDetail() {
   // 编辑状态
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<Record<string, string>>({});
+  const [avatarUploadOpen, setAvatarUploadOpen] = useState(false);
 
   const startEdit = (field: string, currentValue: string) => {
     setEditingField(field);
@@ -50,6 +53,21 @@ export default function MemberDetail() {
       refetch();
     } catch (error) {
       toast.error("保存失败");
+    }
+  };
+
+  const handleAvatarUpload = async (url: string) => {
+    if (!member) return;
+    try {
+      await updateMemberMutation.mutateAsync({
+        id: member.id,
+        photoUrl: url,
+      });
+      toast.success("头像上传成功");
+      setAvatarUploadOpen(false);
+      refetch();
+    } catch (error) {
+      toast.error("头像上传失败");
     }
   };
 
@@ -123,7 +141,7 @@ export default function MemberDetail() {
             <Card>
               <CardContent className="p-6 space-y-4">
                 {/* Avatar */}
-                <div className="w-full aspect-square rounded-lg bg-gradient-to-br from-accent/20 to-chart-2/20 flex items-center justify-center overflow-hidden">
+                <div className="w-full aspect-square rounded-lg bg-gradient-to-br from-accent/20 to-chart-2/20 flex items-center justify-center overflow-hidden relative group">
                   {member.photoUrl ? (
                     <img
                       src={member.photoUrl}
@@ -134,6 +152,14 @@ export default function MemberDetail() {
                     <div className="text-6xl font-bold text-accent/30">
                       {member.nameCn.charAt(0)}
                     </div>
+                  )}
+                  {isEditMode && (
+                    <button
+                      onClick={() => setAvatarUploadOpen(true)}
+                      className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg opacity-100 transition-opacity cursor-pointer"
+                    >
+                      <Upload className="w-6 h-6 text-white" />
+                    </button>
                   )}
                 </div>
 
@@ -467,6 +493,21 @@ export default function MemberDetail() {
           </div>
         </div>
       </div>
+
+      {/* Avatar Upload Dialog */}
+      <Dialog open={avatarUploadOpen} onOpenChange={setAvatarUploadOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>上传成员头像</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <ImageUpload
+              onUpload={handleAvatarUpload}
+              disabled={updateMemberMutation.isPending}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
