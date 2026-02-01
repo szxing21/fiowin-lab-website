@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, members, publications, news, conferences, researchAreas, pages, InsertPage, Page } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -90,9 +90,6 @@ export async function getUserByOpenId(openId: string) {
 }
 
 // Laboratory data queries
-import { members, publications, news, conferences, researchAreas } from "../drizzle/schema";
-import { desc } from "drizzle-orm";
-
 export async function getAllMembers() {
   const db = await getDb();
   if (!db) return [];
@@ -151,11 +148,55 @@ export async function getMemberById(id: number) {
 export async function getPublicationsByMember(memberName: string) {
   const db = await getDb();
   if (!db) return [];
-  // Search for publications where the member name appears in authors or labMembers
   const allPublications = await db.select().from(publications).orderBy(desc(publications.year), desc(publications.month));
   return allPublications.filter(pub => {
     const authors = pub.authors || '';
     const labMembers = pub.labMembers || '';
     return authors.includes(memberName) || labMembers.includes(memberName);
   });
+}
+
+// Pages (editable content)
+export async function getPageBySlug(slug: string): Promise<Page | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(pages).where(eq(pages.slug, slug)).limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function getAllPages() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(pages).orderBy(pages.slug);
+}
+
+export async function upsertPage(slug: string, data: Partial<InsertPage>) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot upsert page: database not available");
+    return null;
+  }
+
+  try {
+    const existing = await getPageBySlug(slug);
+    if (existing) {
+      await db.update(pages).set({
+        ...data,
+        updatedAt: new Date(),
+      }).where(eq(pages.slug, slug));
+      return existing;
+    } else {
+      const result = await db.insert(pages).values({
+        slug,
+        title: data.title || slug,
+        contentHtml: data.contentHtml,
+        contentJson: data.contentJson,
+        description: data.description,
+      });
+      return result;
+    }
+  } catch (error) {
+    console.error("[Database] Failed to upsert page:", error);
+    throw error;
+  }
 }

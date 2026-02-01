@@ -139,3 +139,17 @@ export const researchAreas = mysqlTable("researchAreas", {
 
 export type ResearchArea = typeof researchAreas.$inferSelect;
 export type InsertResearchArea = typeof researchAreas.$inferInsert;
+// Editable Pages (for admin editor)
+export const pages = mysqlTable("pages", {
+  id: int("id").autoincrement().primaryKey(),
+  slug: varchar("slug", { length: 128 }).notNull().unique(),
+  title: varchar("title", { length: 256 }).notNull(),
+  contentHtml: text("contentHtml"),
+  contentJson: text("contentJson"),
+  description: text("description"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Page = typeof pages.$inferSelect;
+export type InsertPage = typeof pages.$inferInsert;
