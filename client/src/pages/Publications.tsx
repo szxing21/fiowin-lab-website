@@ -2,10 +2,31 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { GeometricDecoration } from "@/components/GeometricDecoration";
 import { trpc } from "@/lib/trpc";
-import { BookOpen, ExternalLink, FileText } from "lucide-react";
+import { BookOpen, ExternalLink, FileText, Trophy } from "lucide-react";
+import { useMemo } from "react";
+
+const JOURNAL_TIER_ORDER = { top: 0, high: 1, medium: 2, other: 3 };
 
 export default function Publications() {
   const { data: publications, isLoading } = trpc.lab.publications.useQuery();
+
+  // Sort publications by journal tier and year (descending)
+  const sortedPublications = useMemo(() => {
+    if (!publications) return [];
+    return [...publications].sort((a, b) => {
+      const tierA = JOURNAL_TIER_ORDER[a.journalTier as keyof typeof JOURNAL_TIER_ORDER] ?? 3;
+      const tierB = JOURNAL_TIER_ORDER[b.journalTier as keyof typeof JOURNAL_TIER_ORDER] ?? 3;
+      const tierDiff = tierA - tierB;
+      if (tierDiff !== 0) return tierDiff;
+      return (b.year || 0) - (a.year || 0);
+    });
+  }, [publications]);
+
+  // Group by journal tier
+  const topTierPubs = sortedPublications.filter((p) => p.journalTier === "top");
+  const highTierPubs = sortedPublications.filter((p) => p.journalTier === "high");
+  const mediumTierPubs = sortedPublications.filter((p) => p.journalTier === "medium");
+  const otherPubs = sortedPublications.filter((p) => p.journalTier === "other" || !p.journalTier);
 
   if (isLoading) {
     return (
@@ -20,8 +41,106 @@ export default function Publications() {
     );
   }
 
-  const featuredPubs = publications?.filter((p) => p.featured === 1) || [];
-  const otherPubs = publications?.filter((p) => p.featured !== 1) || [];
+  const PublicationCard = ({ pub }: { pub: any }) => {
+    const keywords = pub.keywords ? JSON.parse(pub.keywords) : [];
+    const labMembers = pub.labMembers ? JSON.parse(pub.labMembers) : [];
+    const isTierTop = pub.journalTier === "top";
+
+    return (
+      <Card
+        className={`group hover:shadow-lg transition-all duration-300 border-border/40 ${
+          isTierTop ? "border-amber-200 bg-amber-50/30" : ""
+        }`}
+      >
+        <CardContent className={`p-8 space-y-4 ${isTierTop ? "border-l-4 border-l-amber-500" : ""}`}>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 space-y-3">
+              <div className="flex items-center gap-2 flex-wrap">
+                {isTierTop && (
+                  <Trophy className="h-5 w-5 text-amber-500" />
+                )}
+                <Badge variant="default" className="bg-accent text-accent-foreground">
+                  {pub.journal}
+                </Badge>
+                <Badge variant="outline">
+                  {pub.year}年{pub.month ? `${pub.month}月` : ""}
+                </Badge>
+                {pub.type && (
+                  <Badge variant="secondary">
+                    {pub.type === "journal" ? "期刊" : pub.type === "conference" ? "会议" : "专利"}
+                  </Badge>
+                )}
+              </div>
+              <h3 className="text-2xl font-bold text-foreground group-hover:text-accent transition-colors">
+                {pub.title}
+              </h3>
+              {pub.authors && (
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-semibold">作者：</span>
+                  {pub.authors}
+                </p>
+              )}
+              {labMembers.length > 0 && (
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-semibold">实验室成员：</span>
+                  {labMembers.join(", ")}
+                </p>
+              )}
+              {pub.abstract && (
+                <p className="text-sm text-muted-foreground leading-relaxed">{pub.abstract}</p>
+              )}
+              {keywords.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {keywords.map((keyword: string, idx: number) => (
+                    <span
+                      key={idx}
+                      className="text-xs px-2 py-1 bg-accent/10 text-foreground rounded-full"
+                    >
+                      {keyword}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="flex-shrink-0">
+              <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-accent/20 to-chart-2/20 flex items-center justify-center">
+                <BookOpen className="h-8 w-8 text-accent" />
+              </div>
+            </div>
+          </div>
+          {(pub.url || pub.doi || pub.pdfUrl) && (
+            <div className="flex items-center gap-3 pt-4 border-t border-border/40">
+              {pub.url && (
+                <a
+                  href={pub.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-accent hover:underline flex items-center gap-1"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  查看论文
+                </a>
+              )}
+              {pub.pdfUrl && (
+                <a
+                  href={pub.pdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-accent hover:underline flex items-center gap-1"
+                >
+                  <FileText className="h-4 w-4" />
+                  下载PDF
+                </a>
+              )}
+              {pub.doi && (
+                <span className="text-xs text-muted-foreground">DOI: {pub.doi}</span>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
 
   return (
     <div className="min-h-screen">
@@ -38,107 +157,54 @@ export default function Publications() {
         </div>
       </section>
 
-      {/* Featured Publications */}
-      {featuredPubs.length > 0 && (
+      {/* Top Tier Publications */}
+      {topTierPubs.length > 0 && (
+        <section className="py-16 bg-amber-50/20">
+          <div className="container">
+            <div className="flex items-center gap-3 mb-8">
+              <Trophy className="h-7 w-7 text-amber-500" />
+              <h2 className="text-3xl font-bold text-foreground">顶级期刊论文</h2>
+              <Badge variant="secondary">{topTierPubs.length} 篇</Badge>
+            </div>
+            <div className="space-y-6">
+              {topTierPubs.map((pub) => (
+                <PublicationCard key={pub.id} pub={pub} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* High Tier Publications */}
+      {highTierPubs.length > 0 && (
+        <section className="py-16">
+          <div className="container">
+            <div className="flex items-center gap-3 mb-8">
+              <BookOpen className="h-7 w-7 text-blue-600" />
+              <h2 className="text-3xl font-bold text-foreground">高水平期刊论文</h2>
+              <Badge variant="secondary">{highTierPubs.length} 篇</Badge>
+            </div>
+            <div className="space-y-6">
+              {highTierPubs.map((pub) => (
+                <PublicationCard key={pub.id} pub={pub} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Medium Tier Publications */}
+      {mediumTierPubs.length > 0 && (
         <section className="py-16 bg-card">
           <div className="container">
-            <h2 className="text-3xl font-bold text-foreground mb-8">精选论文</h2>
+            <div className="flex items-center gap-3 mb-8">
+              <h2 className="text-3xl font-bold text-foreground">期刊论文</h2>
+              <Badge variant="secondary">{mediumTierPubs.length} 篇</Badge>
+            </div>
             <div className="space-y-6">
-              {featuredPubs.map((pub) => {
-                const keywords = pub.keywords ? JSON.parse(pub.keywords) : [];
-                const labMembers = pub.labMembers ? JSON.parse(pub.labMembers) : [];
-
-                return (
-                  <Card
-                    key={pub.id}
-                    className="group hover:shadow-lg transition-all duration-300 border-border/40"
-                  >
-                    <CardContent className="p-8 space-y-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 space-y-3">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <Badge variant="default" className="bg-accent text-accent-foreground">
-                              {pub.journal}
-                            </Badge>
-                            <Badge variant="outline">
-                              {pub.year}年{pub.month ? `${pub.month}月` : ""}
-                            </Badge>
-                            {pub.type && (
-                              <Badge variant="secondary">
-                                {pub.type === "journal" ? "期刊" : pub.type === "conference" ? "会议" : "专利"}
-                              </Badge>
-                            )}
-                          </div>
-                          <h3 className="text-2xl font-bold text-foreground group-hover:text-accent transition-colors">
-                            {pub.title}
-                          </h3>
-                          {pub.authors && (
-                            <p className="text-sm text-muted-foreground">
-                              <span className="font-semibold">作者：</span>
-                              {pub.authors}
-                            </p>
-                          )}
-                          {labMembers.length > 0 && (
-                            <p className="text-sm text-muted-foreground">
-                              <span className="font-semibold">实验室成员：</span>
-                              {labMembers.join(", ")}
-                            </p>
-                          )}
-                          {pub.abstract && (
-                            <p className="text-sm text-muted-foreground leading-relaxed">{pub.abstract}</p>
-                          )}
-                          {keywords.length > 0 && (
-                            <div className="flex flex-wrap gap-2">
-                              {keywords.map((keyword: string, idx: number) => (
-                                <span
-                                  key={idx}
-                                  className="text-xs px-2 py-1 bg-accent/10 text-foreground rounded-full"
-                                >
-                                  {keyword}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-shrink-0">
-                          <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-accent/20 to-chart-2/20 flex items-center justify-center">
-                            <BookOpen className="h-8 w-8 text-accent" />
-                          </div>
-                        </div>
-                      </div>
-                      {(pub.url || pub.doi || pub.pdfUrl) && (
-                        <div className="flex items-center gap-3 pt-4 border-t border-border/40">
-                          {pub.url && (
-                            <a
-                              href={pub.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-sm text-accent hover:underline flex items-center gap-1"
-                            >
-                              <ExternalLink className="h-4 w-4" />
-                              查看论文
-                            </a>
-                          )}
-                          {pub.pdfUrl && (
-                            <a
-                              href={pub.pdfUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-sm text-accent hover:underline flex items-center gap-1"
-                            >
-                              <FileText className="h-4 w-4" />
-                              下载PDF
-                            </a>
-                          )}
-                          {pub.doi && (
-                            <span className="text-xs text-muted-foreground">DOI: {pub.doi}</span>
-                          )}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
+              {mediumTierPubs.map((pub) => (
+                <PublicationCard key={pub.id} pub={pub} />
+              ))}
             </div>
           </div>
         </section>
@@ -148,7 +214,10 @@ export default function Publications() {
       {otherPubs.length > 0 && (
         <section className="py-16">
           <div className="container">
-            <h2 className="text-3xl font-bold text-foreground mb-8">全部论文</h2>
+            <div className="flex items-center gap-3 mb-8">
+              <h2 className="text-3xl font-bold text-foreground">会议论文与专利</h2>
+              <Badge variant="secondary">{otherPubs.length} 篇</Badge>
+            </div>
             <div className="space-y-4">
               {otherPubs.map((pub) => {
                 const keywords = pub.keywords ? JSON.parse(pub.keywords) : [];

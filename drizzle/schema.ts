@@ -65,6 +65,7 @@ export const publications = mysqlTable("publications", {
   url: text("url"),
   pdfUrl: text("pdfUrl"),
   type: mysqlEnum("type", ["journal", "conference", "patent"]).default("journal").notNull(),
+  journalTier: mysqlEnum("journalTier", ["top", "high", "medium", "other"]).default("other"),
   featured: int("featured").default(0),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

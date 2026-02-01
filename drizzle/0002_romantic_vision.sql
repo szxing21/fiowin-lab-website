@@ -1,0 +1,1 @@
+ALTER TABLE `publications` ADD `journalTier` enum('top','high','medium','other') DEFAULT 'other';
