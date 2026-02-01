@@ -140,3 +140,22 @@ export async function getAllResearchAreas() {
   if (!db) return [];
   return db.select().from(researchAreas).orderBy(researchAreas.displayOrder, researchAreas.id);
 }
+
+export async function getMemberById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(members).where(eq(members.id, id)).limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function getPublicationsByMember(memberName: string) {
+  const db = await getDb();
+  if (!db) return [];
+  // Search for publications where the member name appears in authors or labMembers
+  const allPublications = await db.select().from(publications).orderBy(desc(publications.year), desc(publications.month));
+  return allPublications.filter(pub => {
+    const authors = pub.authors || '';
+    const labMembers = pub.labMembers || '';
+    return authors.includes(memberName) || labMembers.includes(memberName);
+  });
+}

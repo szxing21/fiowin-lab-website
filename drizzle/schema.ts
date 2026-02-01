@@ -42,6 +42,15 @@ export const members = mysqlTable("members", {
   photoUrl: text("photoUrl"),
   email: varchar("email", { length: 320 }),
   displayOrder: int("displayOrder").default(0),
+  // Personal page fields
+  education: text("education"), // JSON array of education history
+  workExperience: text("workExperience"), // JSON array of work experience
+  projects: text("projects"), // JSON array of projects
+  researchAreas: text("researchAreas"), // JSON array of research areas
+  personalWebsite: varchar("personalWebsite", { length: 512 }),
+  googleScholar: varchar("googleScholar", { length: 512 }),
+  github: varchar("github", { length: 512 }),
+  orcid: varchar("orcid", { length: 128 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

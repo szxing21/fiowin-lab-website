@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { GeometricDecoration } from "@/components/GeometricDecoration";
 import { trpc } from "@/lib/trpc";
 import { Award, BookOpen, User } from "lucide-react";
+import { Link } from "wouter";
 
 export default function Team() {
   const { data: members, isLoading } = trpc.lab.members.useQuery();
@@ -67,10 +68,8 @@ export default function Team() {
                     const awards = member.awards ? JSON.parse(member.awards) : [];
 
                     return (
-                      <Card
-                        key={member.id}
-                        className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-border/40"
-                      >
+                      <Link key={member.id} href={`/member/${member.id}`}>
+                        <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-border/40 cursor-pointer">
                         <CardContent className="p-6 space-y-4">
                           {/* Avatar */}
                           <div className="flex items-start gap-4">
@@ -164,6 +163,7 @@ export default function Team() {
                           )}
                         </CardContent>
                       </Card>
+                      </Link>
                     );
                   })}
                 </div>

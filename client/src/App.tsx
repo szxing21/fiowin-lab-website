@@ -14,6 +14,7 @@ import News from "./pages/News";
 import Conferences from "./pages/Conferences";
 import Contact from "./pages/Contact";
 import Analytics from "./pages/Analytics";
+import MemberProfile from "./pages/MemberProfile";
 
 function Router() {
   return (
@@ -29,6 +30,7 @@ function Router() {
           <Route path={"/conferences"} component={Conferences} />
           <Route path={"/contact"} component={Contact} />
           <Route path={"/analytics"} component={Analytics} />
+          <Route path={"/member/:id"} component={MemberProfile} />
           <Route path={"/404"} component={NotFound} />
           {/* Final fallback route */}
           <Route component={NotFound} />
