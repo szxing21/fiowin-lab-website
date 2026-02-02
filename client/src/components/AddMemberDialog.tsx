@@ -24,6 +24,7 @@ export function AddMemberDialog({ role, onMemberAdded }: AddMemberDialogProps) {
     nameEn: "",
     title: "",
     year: "",
+    graduationDestination: "",
   });
 
   const createMemberMutation = trpc.lab.createMember.useMutation();
@@ -37,17 +38,23 @@ export function AddMemberDialog({ role, onMemberAdded }: AddMemberDialogProps) {
     }
 
     try {
-      await createMemberMutation.mutateAsync({
+      const payload: any = {
         nameCn: formData.nameCn,
         nameEn: formData.nameEn,
         role: role as any,
         title: formData.title || undefined,
         year: formData.year || undefined,
-      });
+      };
+      
+      if (role === "Alumni" && formData.graduationDestination) {
+        payload.graduationDestination = JSON.stringify([formData.graduationDestination]);
+      }
+      
+      await createMemberMutation.mutateAsync(payload);
 
       toast.success("成员添加成功");
       setOpen(false);
-      setFormData({ nameCn: "", nameEn: "", title: "", year: "" });
+      setFormData({ nameCn: "", nameEn: "", title: "", year: "", graduationDestination: "" });
       onMemberAdded?.();
     } catch (error) {
       toast.error("添加成员失败");
@@ -56,6 +63,7 @@ export function AddMemberDialog({ role, onMemberAdded }: AddMemberDialogProps) {
 
   const isStudent = ["PhD", "Master", "Undergraduate"].includes(role);
   const isTeacher = ["PI", "Postdoc"].includes(role);
+  const isAlumni = role === "Alumni";
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -112,13 +120,26 @@ export function AddMemberDialog({ role, onMemberAdded }: AddMemberDialogProps) {
 
           {isStudent && (
             <div>
-              <label className="text-sm font-medium">年级</label>
+              <label className="text-sm font-medium">入学年份</label>
               <Input
                 value={formData.year}
                 onChange={(e) =>
                   setFormData({ ...formData, year: e.target.value })
                 }
-                placeholder="例如：一年级、二年级"
+                placeholder="例如：2021、2022"
+              />
+            </div>
+          )}
+
+          {isAlumni && (
+            <div>
+              <label className="text-sm font-medium">毕业去向</label>
+              <Input
+                value={formData.graduationDestination}
+                onChange={(e) =>
+                  setFormData({ ...formData, graduationDestination: e.target.value })
+                }
+                placeholder="例如：某公司、继续深造"
               />
             </div>
           )}

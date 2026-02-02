@@ -50,6 +50,13 @@
       "when": 1769954691044,
       "tag": "0006_adorable_hemingway",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1770000141046,
+      "tag": "0007_legal_logan",
+      "breakpoints": true
     }
   ]
 }

@@ -32,7 +32,7 @@ export const members = mysqlTable("members", {
   nameCn: varchar("nameCn", { length: 128 }).notNull(),
   role: mysqlEnum("role", ["PI", "Postdoc", "PhD", "Master", "Undergraduate", "Alumni", "Member"]).notNull(),
   title: varchar("title", { length: 64 }),
-  year: varchar("year", { length: 32 }),
+  year: varchar("year", { length: 32 }), // Admission year (e.g., 2021, 2022) for students, graduation year for alumni
   researchInterests: text("researchInterests"),
   bio: text("bio"),
   publications: int("publications").default(0),
@@ -54,6 +54,7 @@ export const members = mysqlTable("members", {
   // Custom tags for members
   birthday: varchar("birthday", { length: 32 }), // Birthday in YYYY-MM-DD format
   contact: varchar("contact", { length: 128 }), // Contact information (phone, WeChat, etc.)
+  graduationDestination: text("graduationDestination"), // Graduation destination for alumni (JSON array)
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

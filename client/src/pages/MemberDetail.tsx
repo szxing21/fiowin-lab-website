@@ -156,6 +156,9 @@ export default function MemberDetail() {
   const isStudent = ["PhD", "Master", "Undergraduate"].includes(member.role);
   // 判断是否为老师（PI、博士后）
   const isTeacher = ["PI", "Postdoc"].includes(member.role);
+  // 判断是否为毕业生
+  const isAlumni = member.role === "Alumni";
+  const graduationDestinations = safeJsonParse(member.graduationDestination, []);
 
   return (
     <div className="min-h-screen py-16">
@@ -274,7 +277,7 @@ export default function MemberDetail() {
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <label className="text-xs font-semibold text-foreground">
-                          年级
+                          入学年份
                         </label>
                         {isEditMode && editingField !== "year" && (
                           <button
@@ -294,7 +297,7 @@ export default function MemberDetail() {
                             onChange={(e) =>
                               setEditValues({ ...editValues, year: e.target.value })
                             }
-                            placeholder="例如：一年级、二年级"
+                            placeholder="例如：2021、2022"
                             className="w-full px-2 py-1 text-sm border border-border rounded bg-background"
                             autoFocus
                           />
@@ -323,6 +326,70 @@ export default function MemberDetail() {
                         <p className="text-sm text-muted-foreground">
                           {member.year || "未设置"}
                         </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Graduation Destination Tag - for alumni only */}
+                  {isAlumni && (
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-xs font-semibold text-foreground">
+                          毕业去向
+                        </label>
+                        {isEditMode && editingArrayField !== "graduationDestination" && (
+                          <button
+                            onClick={() => startEditArray("graduationDestination", graduationDestinations)}
+                            className="text-xs text-accent hover:text-accent/80"
+                          >
+                            <Edit2 className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
+
+                      {editingArrayField === "graduationDestination" ? (
+                        <div className="space-y-2">
+                          <ArrayEditor
+                            items={editArrayValues["graduationDestination"] || []}
+                            onChange={(items) =>
+                              setEditArrayValues({ ...editArrayValues, graduationDestination: items })
+                            }
+                            placeholder="例如：某公司、继续深造"
+                            hint="添加毕业去向"
+                          />
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => saveEditArray("graduationDestination")}
+                              disabled={updateMemberMutation.isPending}
+                              className="flex-1 gap-1"
+                            >
+                              <Check className="h-3 w-3" />
+                              保存
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={cancelEditArray}
+                              className="flex-1 gap-1"
+                            >
+                              <X className="h-3 w-3" />
+                              取消
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-wrap gap-2">
+                          {graduationDestinations.length > 0 ? (
+                            graduationDestinations.map((dest, idx) => (
+                              <Badge key={idx} variant="outline">
+                                {dest}
+                              </Badge>
+                            ))
+                          ) : (
+                            <p className="text-sm text-muted-foreground">未设置</p>
+                          )}
+                        </div>
                       )}
                     </div>
                   )}
