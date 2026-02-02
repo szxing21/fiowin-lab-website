@@ -9,6 +9,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { ImageUpload } from "@/components/ImageUpload";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { safeJsonParse } from "@/lib/jsonParser";
 
 export default function MemberDetail() {
   const [, params] = useRoute("/member/:id");
@@ -114,8 +115,8 @@ export default function MemberDetail() {
     );
   }
 
-  const interests = member.researchInterests ? JSON.parse(member.researchInterests) : [];
-  const awards = member.awards ? JSON.parse(member.awards) : [];
+  const interests = safeJsonParse(member.researchInterests, []);
+  const awards = safeJsonParse(member.awards, []);
 
   // 判断是否为学生（博士生、硕士生、本科生）
   const isStudent = ["PhD", "Master", "Undergraduate"].includes(member.role);

@@ -9,6 +9,7 @@ import { User, Trash2, GripVertical } from "lucide-react";
 import { useEditMode } from "@/contexts/EditModeContext";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { safeJsonParse } from "@/lib/jsonParser";
 
 interface DraggableMemberCardProps {
   member: Member;
@@ -32,8 +33,8 @@ export function DraggableMemberCard({ member, onDelete }: DraggableMemberCardPro
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const interests = member.researchInterests ? JSON.parse(member.researchInterests) : [];
-  const awards = member.awards ? JSON.parse(member.awards) : [];
+  const interests = safeJsonParse(member.researchInterests, []);
+  const awards = safeJsonParse(member.awards, []);
 
   return (
     <div ref={setNodeRef} style={style}>

@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { Brain, Cpu, Network, Radio, Zap } from "lucide-react";
 import { EditableText } from "@/components/EditableText";
 import { useEditMode } from "@/contexts/EditModeContext";
+import { safeJsonParse } from "@/lib/jsonParser";
 
 const iconMap: Record<string, any> = {
   Network,
@@ -69,7 +70,7 @@ export default function Research() {
         <div className="container">
           <div className="space-y-8">
             {researchAreas?.map((area, index) => {
-              const topics = area.topics ? JSON.parse(area.topics) : [];
+              const topics = safeJsonParse(area.topics, []);
               const IconComponent = area.icon ? iconMap[area.icon] || Zap : Zap;
               const isEven = index % 2 === 0;
 

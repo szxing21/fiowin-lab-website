@@ -6,6 +6,7 @@ import { ArrowRight, Award, BookOpen, Users, Zap } from "lucide-react";
 import { Link } from "wouter";
 import { EditableText } from "@/components/EditableText";
 import { useEditMode } from "@/contexts/EditModeContext";
+import { safeJsonParse } from "@/lib/jsonParser";
 
 export default function Home() {
   const { isEditMode } = useEditMode();
@@ -123,7 +124,7 @@ export default function Home() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {researchAreas?.slice(0, 5).map((area) => {
-                const topics = area.topics ? JSON.parse(area.topics) : [];
+                const topics = safeJsonParse(area.topics, []);
                 return (
                   <Card
                     key={area.id}

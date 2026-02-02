@@ -17,6 +17,7 @@ import {
   ArrowLeft
 } from "lucide-react";
 import { useParams, Link } from "wouter";
+import { safeJsonParse } from "@/lib/jsonParser";
 
 export default function MemberProfile() {
   const params = useParams();
@@ -55,12 +56,12 @@ export default function MemberProfile() {
     );
   }
 
-  const researchInterests = member.researchInterests ? JSON.parse(member.researchInterests) : [];
-  const awards = member.awards ? JSON.parse(member.awards) : [];
-  const education = member.education ? JSON.parse(member.education) : [];
-  const workExperience = member.workExperience ? JSON.parse(member.workExperience) : [];
-  const projects = member.projects ? JSON.parse(member.projects) : [];
-  const researchAreas = member.researchAreas ? JSON.parse(member.researchAreas) : [];
+  const researchInterests = safeJsonParse(member.researchInterests, []);
+  const awards = safeJsonParse(member.awards, []);
+  const education = safeJsonParse(member.education, []);
+  const workExperience = safeJsonParse(member.workExperience, []);
+  const projects = safeJsonParse(member.projects, []);
+  const researchAreas = safeJsonParse(member.researchAreas, []);
 
   const roleLabels: Record<string, string> = {
     PI: "导师",

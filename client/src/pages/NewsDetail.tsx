@@ -9,6 +9,7 @@ import { useEditMode } from "@/contexts/EditModeContext";
 import { toast } from "sonner";
 import { ImageUpload } from "@/components/ImageUpload";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { safeJsonParse } from "@/lib/jsonParser";
 
 export default function NewsDetail() {
   const { id } = useParams<{ id: string }>();
@@ -97,7 +98,7 @@ export default function NewsDetail() {
   };
 
   const handleImageUpload = async (url: string) => {
-    const currentImages = newsItem?.images ? JSON.parse(newsItem.images) : [];
+    const currentImages = safeJsonParse(newsItem?.images, []);
     const newImages = [...currentImages, url];
     try {
       await updateNewsMutation.mutateAsync({
@@ -113,7 +114,7 @@ export default function NewsDetail() {
   };
 
   const handleDeleteImage = async (index: number) => {
-    const currentImages = newsItem?.images ? JSON.parse(newsItem.images) : [];
+    const currentImages = safeJsonParse(newsItem?.images, []);
     const newImages = currentImages.filter((_: string, i: number) => i !== index);
     await updateNewsMutation.mutateAsync({
       id: newsItem.id,
@@ -194,7 +195,7 @@ export default function NewsDetail() {
     );
   };
 
-  const images = newsItem?.images ? JSON.parse(newsItem.images) : [];
+  const images = safeJsonParse(newsItem?.images, []);
 
   return (
     <div className="min-h-screen py-16 bg-background">

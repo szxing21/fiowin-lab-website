@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { safeJsonParse } from "@/lib/jsonParser";
 
 const PAGES = [
   { slug: "about", label: "关于实验室" },
@@ -101,10 +102,23 @@ export default function AdminEditor() {
         // 加载页面内容
         if (pageData?.contentHtml) {
           try {
-            // 尝试解析保存的JSON数据
-            const savedData = JSON.parse(pageData.contentHtml as string);
-            await editor.render(savedData);
-          } catch {
+            // 使用安全的 JSON 解析
+            const savedData = safeJsonParse(pageData.contentHtml as string);
+            if (savedData && Object.keys(savedData).length > 0) {
+              await editor.render(savedData);
+            } else {
+              // 如果不是有效的JSON，作为HTML处理
+              editor.blocks.clear();
+              await editor.blocks.insert(
+                "paragraph",
+                { text: pageData.contentHtml as string },
+                undefined,
+                0,
+                false
+              );
+            }
+          } catch (error) {
+            console.error("Failed to parse content:", error);
             // 如果不是JSON，作为HTML处理
             editor.blocks.clear();
             await editor.blocks.insert(
@@ -138,9 +152,21 @@ export default function AdminEditor() {
       setPageTitle(pageData.title);
       editorRef.current.blocks.clear();
       try {
-        const savedData = JSON.parse(pageData.contentHtml as string);
-        editorRef.current.render(savedData);
-      } catch {
+        // 使用安全的 JSON 解析
+        const savedData = safeJsonParse(pageData.contentHtml as string);
+        if (savedData && Object.keys(savedData).length > 0) {
+          editorRef.current.render(savedData);
+        } else {
+          editorRef.current.blocks.insert(
+            "paragraph",
+            { text: pageData.contentHtml as string },
+            undefined,
+            0,
+            false
+          );
+        }
+      } catch (error) {
+        console.error("Failed to parse content:", error);
         editorRef.current.blocks.insert(
           "paragraph",
           { text: pageData.contentHtml as string },

@@ -5,6 +5,7 @@ import { trpc } from "@/lib/trpc";
 import { Calendar, FileText, MapPin, Presentation, Users } from "lucide-react";
 import { EditableText } from "@/components/EditableText";
 import { useEditMode } from "@/contexts/EditModeContext";
+import { safeJsonParse } from "@/lib/jsonParser";
 
 export default function Conferences() {
   const { isEditMode } = useEditMode();
@@ -62,8 +63,8 @@ export default function Conferences() {
         <div className="container">
           <div className="space-y-8">
             {conferences?.map((conf) => {
-              const attendees = conf.attendees ? JSON.parse(conf.attendees) : [];
-              const invitedTalks = conf.invitedTalks ? JSON.parse(conf.invitedTalks) : [];
+              const attendees = safeJsonParse(conf.attendees, []);
+              const invitedTalks = safeJsonParse(conf.invitedTalks, []);
               const startDate = new Date(conf.startDate);
               const endDate = conf.endDate ? new Date(conf.endDate) : null;
 
