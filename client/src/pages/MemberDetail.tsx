@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { ImageUpload } from "@/components/ImageUpload";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { safeJsonParse } from "@/lib/jsonParser";
+import { ArrayEditor } from "@/components/ArrayEditor";
 
 export default function MemberDetail() {
   const [, params] = useRoute("/member/:id");
@@ -29,6 +30,10 @@ export default function MemberDetail() {
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<Record<string, string>>({});
   const [avatarUploadOpen, setAvatarUploadOpen] = useState(false);
+  
+  // 数组编辑状态
+  const [editingArrayField, setEditingArrayField] = useState<string | null>(null);
+  const [editArrayValues, setEditArrayValues] = useState<Record<string, string[]>>({});
 
   const startEdit = (field: string, currentValue: string) => {
     setEditingField(field);
@@ -51,6 +56,35 @@ export default function MemberDetail() {
       toast.success("保存成功");
       setEditingField(null);
       setEditValues({});
+      refetch();
+    } catch (error) {
+      toast.error("保存失败");
+    }
+  };
+
+  // 数组字段编辑处理
+  const startEditArray = (field: string, currentValue: string[]) => {
+    setEditingArrayField(field);
+    setEditArrayValues({ ...editArrayValues, [field]: currentValue });
+  };
+
+  const cancelEditArray = () => {
+    setEditingArrayField(null);
+    setEditArrayValues({});
+  };
+
+  const saveEditArray = async (field: string) => {
+    if (!member) return;
+
+    try {
+      const newValue = editArrayValues[field] || [];
+      await updateMemberMutation.mutateAsync({
+        id: member.id,
+        [field]: JSON.stringify(newValue),
+      });
+      toast.success("保存成功");
+      setEditingArrayField(null);
+      setEditArrayValues({});
       refetch();
     } catch (error) {
       toast.error("保存失败");
@@ -299,8 +333,7 @@ export default function MemberDetail() {
                   <Button
                     onClick={handleDelete}
                     variant="destructive"
-                    className="w-full"
-                    disabled={deleteMemberMutation.isPending}
+                    className="w-full mt-4"
                   >
                     删除成员
                   </Button>
@@ -309,9 +342,9 @@ export default function MemberDetail() {
             </Card>
           </div>
 
-          {/* Right: Content */}
+          {/* Right: Details */}
           <div className="md:col-span-2 space-y-6">
-            {/* Personal Bio */}
+            {/* Bio */}
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
@@ -370,9 +403,9 @@ export default function MemberDetail() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold">研究方向</h2>
-                  {isEditMode && editingField !== "researchInterests" && (
+                  {isEditMode && editingArrayField !== "researchInterests" && (
                     <button
-                      onClick={() => startEdit("researchInterests", member.researchInterests || "[]")}
+                      onClick={() => startEditArray("researchInterests", interests)}
                       className="text-accent hover:text-accent/80"
                     >
                       <Edit2 className="h-4 w-4" />
@@ -380,21 +413,19 @@ export default function MemberDetail() {
                   )}
                 </div>
 
-                {editingField === "researchInterests" ? (
-                  <div className="space-y-2">
-                    <textarea
-                      value={editValues["researchInterests"]}
-                      onChange={(e) =>
-                        setEditValues({ ...editValues, researchInterests: e.target.value })
+                {editingArrayField === "researchInterests" ? (
+                  <div className="space-y-4">
+                    <ArrayEditor
+                      items={editArrayValues["researchInterests"] || interests}
+                      onChange={(items) =>
+                        setEditArrayValues({ ...editArrayValues, researchInterests: items })
                       }
-                      placeholder="输入研究方向，每行一个"
-                      rows={4}
-                      className="w-full px-3 py-2 text-sm border border-border rounded bg-background"
-                      autoFocus
+                      placeholder="例如：光通信、光电子"
+                      helpText="添加您的研究方向，每个方向为一项"
                     />
                     <div className="flex gap-2">
                       <Button
-                        onClick={() => saveEdit("researchInterests")}
+                        onClick={() => saveEditArray("researchInterests")}
                         disabled={updateMemberMutation.isPending}
                         className="flex-1 gap-1"
                       >
@@ -403,7 +434,7 @@ export default function MemberDetail() {
                       </Button>
                       <Button
                         variant="outline"
-                        onClick={cancelEdit}
+                        onClick={cancelEditArray}
                         className="flex-1 gap-1"
                       >
                         <X className="h-3 w-3" />
@@ -433,9 +464,9 @@ export default function MemberDetail() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-semibold">荣誉奖项</h2>
-                    {isEditMode && editingField !== "awards" && (
+                    {isEditMode && editingArrayField !== "awards" && (
                       <button
-                        onClick={() => startEdit("awards", member.awards || "[]")}
+                        onClick={() => startEditArray("awards", awards)}
                         className="text-accent hover:text-accent/80"
                       >
                         <Edit2 className="h-4 w-4" />
@@ -443,21 +474,19 @@ export default function MemberDetail() {
                     )}
                   </div>
 
-                  {editingField === "awards" ? (
-                    <div className="space-y-2">
-                      <textarea
-                        value={editValues["awards"]}
-                        onChange={(e) =>
-                          setEditValues({ ...editValues, awards: e.target.value })
+                  {editingArrayField === "awards" ? (
+                    <div className="space-y-4">
+                      <ArrayEditor
+                        items={editArrayValues["awards"] || awards}
+                        onChange={(items) =>
+                          setEditArrayValues({ ...editArrayValues, awards: items })
                         }
-                        placeholder="输入荣誉奖项，每行一个"
-                        rows={4}
-                        className="w-full px-3 py-2 text-sm border border-border rounded bg-background"
-                        autoFocus
+                        placeholder="例如：复旦大学KLA冠名奖学金"
+                        helpText="添加您获得的荣誉和奖项"
                       />
                       <div className="flex gap-2">
                         <Button
-                          onClick={() => saveEdit("awards")}
+                          onClick={() => saveEditArray("awards")}
                           disabled={updateMemberMutation.isPending}
                           className="flex-1 gap-1"
                         >
@@ -466,7 +495,7 @@ export default function MemberDetail() {
                         </Button>
                         <Button
                           variant="outline"
-                          onClick={cancelEdit}
+                          onClick={cancelEditArray}
                           className="flex-1 gap-1"
                         >
                           <X className="h-3 w-3" />
@@ -475,13 +504,12 @@ export default function MemberDetail() {
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-2">
+                    <div className="flex flex-wrap gap-2">
                       {awards.length > 0 ? (
                         awards.map((award: string, idx: number) => (
-                          <div key={idx} className="flex items-start gap-2 text-sm">
-                            <span className="text-accent">•</span>
-                            <span className="text-muted-foreground">{award}</span>
-                          </div>
+                          <Badge key={idx} variant="outline">
+                            {award}
+                          </Badge>
                         ))
                       ) : (
                         <p className="text-sm text-muted-foreground">未设置</p>
@@ -493,22 +521,22 @@ export default function MemberDetail() {
             )}
           </div>
         </div>
-      </div>
 
-      {/* Avatar Upload Dialog */}
-      <Dialog open={avatarUploadOpen} onOpenChange={setAvatarUploadOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>上传成员头像</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <ImageUpload
-              onUpload={handleAvatarUpload}
-              disabled={updateMemberMutation.isPending}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
+        {/* Avatar Upload Dialog */}
+        <Dialog open={avatarUploadOpen} onOpenChange={setAvatarUploadOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>上传成员头像</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <ImageUpload
+                onUpload={handleAvatarUpload}
+                disabled={updateMemberMutation.isPending}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }
