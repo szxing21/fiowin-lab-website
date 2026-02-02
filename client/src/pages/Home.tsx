@@ -1,12 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { GeometricDecoration } from "@/components/GeometricDecoration";
+import { HeroBackground } from "@/components/HeroBackground";
 import { trpc } from "@/lib/trpc";
 import { ArrowRight, Award, BookOpen, Users, Zap } from "lucide-react";
 import { Link } from "wouter";
 import { EditableText } from "@/components/EditableText";
 import { useEditMode } from "@/contexts/EditModeContext";
 import { safeJsonParse } from "@/lib/jsonParser";
+import { useState } from "react";
 
 export default function Home() {
   const { isEditMode } = useEditMode();
@@ -16,7 +18,13 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative py-20 md:py-32 overflow-hidden">
+      <section className="relative py-20 md:py-32 overflow-hidden bg-background">
+        {/* 背景图片层（可选，需要配置图片URL） */}
+        <HeroBackground 
+          imageUrl={undefined} // 图片URL可通过管理后台配置
+          blurAmount={15}
+          gradientOpacity={0.6}
+        />
         <GeometricDecoration variant="hero" />
         <div className="container relative z-10">
           <div className="max-w-4xl mx-auto text-center space-y-8">
